@@ -1,0 +1,6 @@
+# Shareable baseline Codex config.
+# Copy safe defaults from here into the private live config.toml as needed.
+# Keep machine-specific state such as [projects."..."] trust entries private.
+
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"

@@ -1,0 +1,28 @@
+# Deny by default. New top-level paths stay private until explicitly allowlisted below.
+/*
+
+# Repo policy files
+!.gitignore
+!README.md
+!AGENTS.md
+!config.example.toml
+
+# Repo tooling
+!/.githooks/
+/.githooks/__pycache__/
+/.githooks/**/__pycache__/
+/.githooks/*.pyc
+/.githooks/**/*.pyc
+
+# Sharable instructions
+!/instructions/
+
+# Sharable rules
+!/rules/
+/rules/*
+!/rules/global.rules
+
+# Sharable skills
+!/skills/
+/skills/*
+!/skills/memory-refiner/
