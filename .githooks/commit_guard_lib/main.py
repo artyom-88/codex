@@ -3,9 +3,10 @@ from __future__ import annotations
 import sys
 
 from .codex_review import run_codex_review
-from .git_tools import staged_diff, staged_paths
+from .git_tools import staged_diff, staged_diff_stat, staged_paths
 from .models import Issue
 from .scanner import deterministic_scan
+from .settings import load_guard_settings
 
 
 def print_status(message: str) -> None:
@@ -19,6 +20,12 @@ def print_issues(header: str, issues: list[Issue]) -> None:
 
 
 def main() -> int:
+    try:
+        settings = load_guard_settings()
+    except RuntimeError as exc:
+        print(f"pre-commit guard failed: {exc}", file=sys.stderr)
+        return 1
+
     print_status("collecting staged files")
     try:
         paths = staged_paths()
@@ -37,11 +44,12 @@ def main() -> int:
         return 1
 
     print_status("deterministic checks passed")
-    print_status("building staged diff for Codex review")
-    diff_text = staged_diff(paths)
+    print_status("building staged review payload for Codex")
+    diff_stat_text = staged_diff_stat(paths, settings.max_review_diff_stat_chars)
+    diff_text = staged_diff(paths, settings.max_review_diff_chars)
 
-    print_status("running Codex exposure review")
-    codex_issues = run_codex_review(paths, diff_text)
+    print_status(f"running Codex exposure review (timeout {settings.codex_timeout_seconds}s)")
+    codex_issues = run_codex_review(paths, diff_stat_text, diff_text, settings)
     if codex_issues:
         print_issues("Commit blocked by Codex exposure review:", codex_issues)
         return 1

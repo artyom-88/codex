@@ -8,11 +8,20 @@ import tempfile
 
 from .git_tools import run_command
 from .models import Issue
-from .settings import CODEX_TIMEOUT_SECONDS, REPO_ROOT, SCHEMA_PATH
+from .settings import GuardSettings, REPO_ROOT, SCHEMA_PATH
 
 
-def build_prompt(paths: list[str], diff_text: str) -> str:
-    path_lines = "\n".join(f"- {path}" for path in paths)
+def _summarize_paths(paths: list[str], max_paths: int) -> str:
+    visible = paths[:max_paths]
+    lines = [f"- {path}" for path in visible]
+    omitted = len(paths) - len(visible)
+    if omitted > 0:
+        lines.append(f"- ... {omitted} more staged path(s) omitted from this list")
+    return "\n".join(lines)
+
+
+def build_prompt(paths: list[str], diff_stat_text: str, diff_text: str, settings: GuardSettings) -> str:
+    path_lines = _summarize_paths(paths, settings.max_review_paths)
     return f"""You are the final safety gate for a shareable Codex home repository.
 
 Review the staged diff and decide whether this commit is safe to publish.
@@ -29,10 +38,17 @@ Important review rule:
 
 Return JSON matching the provided schema.
 
-Staged paths:
+Staged path summary:
+- Total staged paths: {len(paths)}
+- Review path list limit: {settings.max_review_paths}
 {path_lines}
 
-Staged diff:
+Staged diff stat:
+```text
+{diff_stat_text}
+```
+
+Staged diff excerpt:
 ```diff
 {diff_text}
 ```
@@ -56,12 +72,17 @@ def parse_result(payload: dict[str, object]) -> list[Issue]:
     return issues
 
 
-def run_codex_review(paths: list[str], diff_text: str) -> list[Issue]:
+def run_codex_review(
+    paths: list[str],
+    diff_stat_text: str,
+    diff_text: str,
+    settings: GuardSettings,
+) -> list[Issue]:
     codex_bin = shutil.which("codex")
     if codex_bin is None:
         return [Issue(path="(hook)", reason="codex CLI is not installed or not on PATH")]
 
-    prompt = build_prompt(paths, diff_text)
+    prompt = build_prompt(paths, diff_stat_text, diff_text, settings)
     with tempfile.TemporaryDirectory(prefix="commit-guard-") as temp_dir:
         output_path = Path(temp_dir) / "codex-output.json"
         args = [
@@ -87,7 +108,7 @@ def run_codex_review(paths: list[str], diff_text: str) -> list[Issue]:
             completed = run_command(
                 args,
                 input_text=prompt,
-                timeout=CODEX_TIMEOUT_SECONDS,
+                timeout=settings.codex_timeout_seconds,
                 check=False,
             )
         except subprocess.TimeoutExpired:

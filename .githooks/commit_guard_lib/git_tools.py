@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import subprocess
 
-from .settings import MAX_DIFF_CHARS, REPO_ROOT
+from .settings import REPO_ROOT
 
 
 def run_command(
@@ -48,15 +48,23 @@ def staged_blob_text(path: str) -> str:
     return completed.stdout
 
 
-def staged_diff(paths: list[str]) -> str:
+def _truncate_text(text: str, max_chars: int, label: str) -> str:
+    if len(text) <= max_chars:
+        return text
+
+    truncated = len(text) - max_chars
+    return text[:max_chars] + f"\n\n[{label}; omitted {truncated} trailing characters]\n"
+
+
+def staged_diff(paths: list[str], max_chars: int) -> str:
     args = ["git", "diff", "--cached", "--no-ext-diff", "--text", "--unified=3", "--"]
     args.extend(paths)
     completed = run_command(args, timeout=30)
-    diff = completed.stdout
-    if len(diff) > MAX_DIFF_CHARS:
-        truncated = len(diff) - MAX_DIFF_CHARS
-        diff = (
-            diff[:MAX_DIFF_CHARS]
-            + f"\n\n[diff truncated by commit_guard.py; omitted {truncated} trailing characters]\n"
-        )
-    return diff
+    return _truncate_text(completed.stdout, max_chars, "diff truncated by commit_guard.py")
+
+
+def staged_diff_stat(paths: list[str], max_chars: int) -> str:
+    args = ["git", "diff", "--cached", "--stat", "--"]
+    args.extend(paths)
+    completed = run_command(args, timeout=20)
+    return _truncate_text(completed.stdout, max_chars, "diff stat truncated by commit_guard.py")

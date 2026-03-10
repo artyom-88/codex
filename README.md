@@ -45,6 +45,11 @@ This repo uses a native Git pre-commit hook from `.githooks/`.
 - a deterministic scanner over staged paths and staged content
 - a non-interactive Codex review of the staged diff
 - Commits fail closed if Codex is unavailable, errors, or returns a blocking result
+- Tune Codex review for large commits with env vars:
+- `COMMIT_GUARD_CODEX_TIMEOUT_SECONDS`
+- `COMMIT_GUARD_MAX_REVIEW_DIFF_CHARS`
+- `COMMIT_GUARD_MAX_REVIEW_DIFF_STAT_CHARS`
+- `COMMIT_GUARD_MAX_REVIEW_PATHS`
 
 ## Keep private
 
