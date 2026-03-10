@@ -1,0 +1,14 @@
+[MASTER]
+jobs=1
+py-version=3.11
+persistent=no
+
+[MESSAGES CONTROL]
+disable=
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    too-many-return-statements
+
+[FORMAT]
+max-line-length=120

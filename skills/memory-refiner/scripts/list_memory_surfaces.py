@@ -5,7 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
+import shutil
+import subprocess  # nosec B404: this utility shells out only to git for repo discovery
 from pathlib import Path
 from typing import Any
 
@@ -33,16 +34,20 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_project_root(cwd: Path) -> Path | None:
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
-            cwd=cwd,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    git_bin = shutil.which("git")
+    if git_bin is None:
         result = None
+    else:
+        try:
+            result = subprocess.run(
+                [git_bin, "rev-parse", "--show-toplevel"],
+                cwd=cwd,
+                check=True,
+                capture_output=True,
+                text=True,
+            )  # nosec B603: fixed git command for local repo root detection
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            result = None
 
     if result is not None:
         candidate = Path(result.stdout.strip())
