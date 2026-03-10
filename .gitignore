@@ -6,6 +6,11 @@
 !README.md
 !AGENTS.md
 !config.example.toml
+!.pylintrc
+
+# Generated Python files stay private everywhere
+__pycache__/
+*.pyc
 
 # Repo tooling
 !/.githooks/
@@ -13,6 +18,9 @@
 /.githooks/**/__pycache__/
 /.githooks/*.pyc
 /.githooks/**/*.pyc
+
+# GitHub automation
+!/.github/
 
 # Sharable instructions
 !/instructions/

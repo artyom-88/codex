@@ -11,7 +11,9 @@ Everything is private by default. A file is eligible for publishing only if it i
 ## Current public set
 
 - `AGENTS.md`
+- `.pylintrc`
 - `config.example.toml`
+- everything under `.github/`
 - everything under `.githooks/`
 - everything under `instructions/`
 - `rules/global.rules`
@@ -40,11 +42,26 @@ System skills under `skills/.system/` stay private.
 This repo uses a native Git pre-commit hook from `.githooks/`.
 
 - Install it with `git config core.hooksPath .githooks`
+- The hook requires `python3` 3.11 or newer on the machine running it
 - The hook prints short phase progress messages to stderr while it runs
 - The hook blocks commits unless both checks pass:
 - a deterministic scanner over staged paths and staged content
 - a non-interactive Codex review of the staged diff
 - Commits fail closed if Codex is unavailable, errors, or returns a blocking result
+- Regex-based deterministic checks are configured in `.githooks/commit_guard_patterns.toml`
+- The hook fails closed if that pattern config is missing, malformed, or contains invalid regexes
+- Tune Codex review for large commits with env vars:
+- `COMMIT_GUARD_CODEX_TIMEOUT_SECONDS`
+- `COMMIT_GUARD_MAX_REVIEW_DIFF_CHARS`
+- `COMMIT_GUARD_MAX_REVIEW_DIFF_STAT_CHARS`
+- `COMMIT_GUARD_MAX_REVIEW_PATHS`
+
+## GitHub automation
+
+- `.github/workflows/shareable-checks.yml` runs regular CI
+- The same workflow also runs `bandit` against tracked Python files for a basic security scan
+- `.github/dependabot.yml` keeps GitHub Actions dependencies up to date
+- CI runs `pylint` over tracked Python files
 
 ## Keep private
 
