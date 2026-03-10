@@ -8,6 +8,10 @@
 !config.example.toml
 !.pylintrc
 
+# Generated Python files stay private everywhere
+__pycache__/
+*.pyc
+
 # Repo tooling
 !/.githooks/
 /.githooks/__pycache__/

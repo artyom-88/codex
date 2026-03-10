@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import shutil
-import subprocess
 import tempfile
+from subprocess import TimeoutExpired  # nosec B404: local CLI timeout handling only
 
 from .git_tools import run_command
 from .models import Issue
@@ -111,7 +111,7 @@ def run_codex_review(
                 timeout=settings.codex_timeout_seconds,
                 check=False,
             )
-        except subprocess.TimeoutExpired:
+        except TimeoutExpired:
             return [Issue(path="(hook)", reason="codex review timed out")]
         except RuntimeError as exc:
             return [Issue(path="(hook)", reason=str(exc))]
