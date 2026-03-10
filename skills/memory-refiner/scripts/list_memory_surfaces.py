@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+"""List Codex instruction and configuration surfaces for the active repo context."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+from pathlib import Path
+from typing import Any
+
+PROJECT_MARKERS = (
+    ".codex",
+    "AGENTS.md",
+    "package.json",
+    "pyproject.toml",
+    "Cargo.toml",
+    "go.mod",
+    "pom.xml",
+    "build.gradle",
+    "build.gradle.kts",
+)
+
+LOCAL_CODEX_SUFFIXES = {".md", ".toml", ".rules", ".yaml", ".yml"}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--codex-home", default="~/.codex", help="Path to Codex home")
+    parser.add_argument("--cwd", default=str(Path.cwd()), help="Current working directory")
+    parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
+    return parser.parse_args()
+
+
+def resolve_project_root(cwd: Path) -> Path | None:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=cwd,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        result = None
+
+    if result is not None:
+        candidate = Path(result.stdout.strip())
+        if candidate.exists():
+            return candidate
+
+    for candidate in (cwd, *cwd.parents):
+        if any((candidate / marker).exists() for marker in PROJECT_MARKERS):
+            return candidate
+    return None
+
+
+def count_lines(path: Path) -> int:
+    with path.open("r", encoding="utf-8", errors="ignore") as handle:
+        return sum(1 for _ in handle)
+
+
+def to_display_path(path: Path, base: Path | None = None) -> str:
+    if base is not None:
+        try:
+            return str(path.relative_to(base))
+        except ValueError:
+            pass
+    return str(path)
+
+
+def file_record(path: Path, scope: str, category: str, display_base: Path | None = None) -> dict[str, Any]:
+    stat = path.stat()
+    return {
+        "scope": scope,
+        "category": category,
+        "path": str(path),
+        "display_path": to_display_path(path, display_base),
+        "bytes": stat.st_size,
+        "lines": count_lines(path),
+    }
+
+
+def collect_global_surfaces(codex_home: Path) -> list[dict[str, Any]]:
+    surfaces: list[dict[str, Any]] = []
+    agents = codex_home / "AGENTS.md"
+    if agents.exists():
+        surfaces.append(file_record(agents, "global", "instruction-root", codex_home))
+
+    config = codex_home / "config.toml"
+    if config.exists():
+        surfaces.append(file_record(config, "global", "config", codex_home))
+
+    instructions = codex_home / "instructions"
+    if instructions.exists():
+        for path in sorted(instructions.rglob("*.md")):
+            surfaces.append(file_record(path, "global", "instruction-lazy", codex_home))
+
+    rules = codex_home / "rules"
+    if rules.exists():
+        for path in sorted(rules.glob("*.rules")):
+            surfaces.append(file_record(path, "global", "rules", codex_home))
+
+    skills = codex_home / "skills"
+    if skills.exists():
+        for path in sorted(skills.rglob("SKILL.md")):
+            category = "skill-system" if ".system" in path.parts else "skill-user"
+            surfaces.append(file_record(path, "global", category, codex_home))
+        for path in sorted(skills.rglob("openai.yaml")):
+            category = "skill-system-metadata" if ".system" in path.parts else "skill-user-metadata"
+            surfaces.append(file_record(path, "global", category, codex_home))
+
+    return surfaces
+
+
+def collect_project_surfaces(project_root: Path | None) -> list[dict[str, Any]]:
+    if project_root is None:
+        return []
+
+    surfaces: list[dict[str, Any]] = []
+    agents = project_root / "AGENTS.md"
+    if agents.exists():
+        surfaces.append(file_record(agents, "repo-local", "instruction-root", project_root))
+
+    local_codex = project_root / ".codex"
+    if local_codex.exists():
+        for path in sorted(local_codex.rglob("*")):
+            if not path.is_file() or path.suffix not in LOCAL_CODEX_SUFFIXES:
+                continue
+            surfaces.append(file_record(path, "project-local", "local-codex", project_root))
+
+    return surfaces
+
+
+def render_markdown(payload: dict[str, Any]) -> str:
+    lines = ["# Codex Memory Surfaces", ""]
+    lines.append(f"- Codex home: `{payload['codex_home']}`")
+    lines.append(f"- CWD: `{payload['cwd']}`")
+    lines.append(f"- Project root: `{payload['project_root'] or 'not found'}`")
+
+    def add_group(title: str, items: list[dict[str, Any]]) -> None:
+        lines.extend(["", f"## {title}"])
+        if not items:
+            lines.append("- None")
+            return
+        for item in items:
+            lines.append(
+                f"- `{item['category']}` {item['display_path']} ({item['lines']} lines, {item['bytes']} bytes)"
+            )
+
+    add_group("Global Surfaces", payload["global_surfaces"])
+    add_group("Project Surfaces", payload["project_surfaces"])
+    return "\n".join(lines)
+
+
+def main() -> int:
+    args = parse_args()
+    codex_home = Path(args.codex_home).expanduser().resolve()
+    cwd = Path(args.cwd).expanduser().resolve()
+    project_root = resolve_project_root(cwd)
+
+    payload = {
+        "codex_home": str(codex_home),
+        "cwd": str(cwd),
+        "project_root": str(project_root) if project_root else None,
+        "global_surfaces": collect_global_surfaces(codex_home),
+        "project_surfaces": collect_project_surfaces(project_root),
+    }
+
+    if args.format == "json":
+        print(json.dumps(payload, indent=2))
+    else:
+        print(render_markdown(payload))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

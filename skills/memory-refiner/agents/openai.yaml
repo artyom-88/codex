@@ -1,0 +1,4 @@
+interface:
+  display_name: "Memory Refiner"
+  short_description: "Refine Codex memory and config"
+  default_prompt: "Use $memory-refiner to analyze Codex history, instructions, rules, local project overrides, and config, then suggest targeted improvements before applying anything."
