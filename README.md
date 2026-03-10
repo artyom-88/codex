@@ -45,6 +45,8 @@ This repo uses a native Git pre-commit hook from `.githooks/`.
 - a deterministic scanner over staged paths and staged content
 - a non-interactive Codex review of the staged diff
 - Commits fail closed if Codex is unavailable, errors, or returns a blocking result
+- Regex-based deterministic checks are configured in `.githooks/commit_guard_patterns.toml`
+- The hook fails closed if that pattern config is missing, malformed, or contains invalid regexes
 - Tune Codex review for large commits with env vars:
 - `COMMIT_GUARD_CODEX_TIMEOUT_SECONDS`
 - `COMMIT_GUARD_MAX_REVIEW_DIFF_CHARS`

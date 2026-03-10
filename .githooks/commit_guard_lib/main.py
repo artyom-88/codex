@@ -5,6 +5,7 @@ import sys
 from .codex_review import run_codex_review
 from .git_tools import staged_diff, staged_diff_stat, staged_paths
 from .models import Issue
+from .pattern_config import load_pattern_config
 from .scanner import deterministic_scan
 from .settings import load_guard_settings
 
@@ -22,6 +23,7 @@ def print_issues(header: str, issues: list[Issue]) -> None:
 def main() -> int:
     try:
         settings = load_guard_settings()
+        patterns = load_pattern_config()
     except RuntimeError as exc:
         print(f"pre-commit guard failed: {exc}", file=sys.stderr)
         return 1
@@ -38,7 +40,7 @@ def main() -> int:
         return 0
 
     print_status(f"running deterministic checks for {len(paths)} staged path(s)")
-    deterministic_issues = deterministic_scan(paths)
+    deterministic_issues = deterministic_scan(paths, patterns)
     if deterministic_issues:
         print_issues("Commit blocked by deterministic exposure checks:", deterministic_issues)
         return 1

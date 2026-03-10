@@ -33,7 +33,7 @@ Repository policy:
 - If unsure, block.
 
 Important review rule:
-- Do not block the hook implementation itself merely because it contains regex patterns, denylist constants, schema text, or documented examples of forbidden content.
+- Do not block the hook implementation or its policy/config files merely because they contain regex patterns, denylist constants, schema text, or documented examples of forbidden content.
 - Only block if the diff appears to contain actual sensitive values, actual local/private state, or content that is otherwise unsafe to publish.
 
 Return JSON matching the provided schema.

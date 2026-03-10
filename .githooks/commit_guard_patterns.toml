@@ -1,0 +1,60 @@
+[[secret_patterns]]
+label = "GitHub token"
+regex = '''\bgh[pousr]_[A-Za-z0-9]{20,}\b'''
+
+[[secret_patterns]]
+label = "GitHub PAT"
+regex = '''\bgithub_pat_[A-Za-z0-9_]{20,}\b'''
+
+[[secret_patterns]]
+label = "OpenAI-style key"
+regex = '''\bsk-[A-Za-z0-9_-]{20,}\b'''
+
+[[secret_patterns]]
+label = "AWS access key"
+regex = '''\bAKIA[0-9A-Z]{16}\b'''
+
+[[secret_patterns]]
+label = "Bearer token"
+regex = '''(?i)\bbearer\s+[A-Za-z0-9._\-]{20,}\b'''
+
+[[secret_patterns]]
+label = "Secret assignment"
+regex = '''
+(?ix)
+\b(api[_ -]?key|token|secret|password)\b
+\s*[:=]\s*
+["']?[A-Za-z0-9._/\-+=]{12,}["']?
+'''
+
+[[secret_patterns]]
+label = "Private key block"
+regex = '''-----BEGIN (?:RSA |DSA |EC |OPENSSH )?PRIVATE KEY-----'''
+
+[[private_surface_patterns]]
+label = "Absolute local Codex path"
+regex = '''
+(?ix)
+(?:/Users|/home)/[^/\s]+/\.codex/
+(?:
+  auth\.json|
+  config\.toml|
+  history\.jsonl|
+  models_cache\.json|
+  version\.json|
+  sessions/|
+  shell_snapshots/|
+  tmp/|
+  log/|
+  logs_\d+\.sqlite(?:-(?:shm|wal))?|
+  state_\d+\.sqlite(?:-(?:shm|wal))?
+)
+'''
+
+[[private_surface_patterns]]
+label = "Session transcript path"
+regex = '''\bsessions/\d{4}/\d{2}/\d{2}/rollout-[^\s"']+\.jsonl\b'''
+
+[[private_surface_patterns]]
+label = "Shell snapshot path"
+regex = '''\bshell_snapshots/[0-9a-f-]+\.sh\b'''
