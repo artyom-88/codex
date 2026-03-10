@@ -11,7 +11,9 @@ Everything is private by default. A file is eligible for publishing only if it i
 ## Current public set
 
 - `AGENTS.md`
+- `.pylintrc`
 - `config.example.toml`
+- everything under `.github/`
 - everything under `.githooks/`
 - everything under `instructions/`
 - `rules/global.rules`
@@ -52,6 +54,13 @@ This repo uses a native Git pre-commit hook from `.githooks/`.
 - `COMMIT_GUARD_MAX_REVIEW_DIFF_CHARS`
 - `COMMIT_GUARD_MAX_REVIEW_DIFF_STAT_CHARS`
 - `COMMIT_GUARD_MAX_REVIEW_PATHS`
+
+## GitHub automation
+
+- `.github/workflows/shareable-checks.yml` runs regular CI
+- The same workflow also runs `bandit` against tracked Python files for a basic security scan
+- `.github/dependabot.yml` keeps GitHub Actions dependencies up to date
+- CI runs `pylint` over tracked Python files
 
 ## Keep private
 

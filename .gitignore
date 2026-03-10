@@ -6,6 +6,7 @@
 !README.md
 !AGENTS.md
 !config.example.toml
+!.pylintrc
 
 # Repo tooling
 !/.githooks/
@@ -13,6 +14,9 @@
 /.githooks/**/__pycache__/
 /.githooks/*.pyc
 /.githooks/**/*.pyc
+
+# GitHub automation
+!/.github/
 
 # Sharable instructions
 !/instructions/
