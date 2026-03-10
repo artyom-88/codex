@@ -42,6 +42,7 @@ System skills under `skills/.system/` stay private.
 This repo uses a native Git pre-commit hook from `.githooks/`.
 
 - Install it with `git config core.hooksPath .githooks`
+- The hook requires `python3` 3.11 or newer on the machine running it
 - The hook prints short phase progress messages to stderr while it runs
 - The hook blocks commits unless both checks pass:
 - a deterministic scanner over staged paths and staged content
