@@ -33,4 +33,5 @@ __pycache__/
 # Sharable skills
 !/skills/
 /skills/*
+!/skills/INDEX.md
 !/skills/memory-refiner/

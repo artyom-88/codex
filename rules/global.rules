@@ -1,4 +1,5 @@
 prefix_rule(pattern=["./gradlew", "test"], decision="allow")
-prefix_rule(pattern=["kubectl", "logs"], decision="allow")
+prefix_rule(pattern=["gh", "pr", "create"], decision="allow")
 prefix_rule(pattern=["kubectl", "get"], decision="allow")
+prefix_rule(pattern=["kubectl", "logs"], decision="allow")
 prefix_rule(pattern=["pnpm", "install"], decision="prompt")
