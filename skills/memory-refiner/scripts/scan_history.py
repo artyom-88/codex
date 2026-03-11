@@ -52,6 +52,20 @@ TOOL_TOKENS = (
     "drupal",
 )
 
+STRUCTURED_WORKFLOW_SIGNAL_RULES = (
+    ("turn_aborted notices", ("turn_aborted", "turn aborted")),
+    ("conversation interrupted notices", ("conversation interrupted",)),
+    ("conversation aborted notices", ("conversation aborted",)),
+    ("user-aborted turn notices", ("aborted by user", "user interrupted")),
+)
+
+TEXT_WORKFLOW_SIGNAL_RULES = (
+    ("turn_aborted mentions", ("turn_aborted", "turn aborted")),
+    ("conversation interrupted mentions", ("conversation interrupted",)),
+    ("conversation aborted mentions", ("conversation aborted",)),
+    ("user-aborted turn mentions", ("aborted by user", "user interrupted")),
+)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -100,9 +114,50 @@ def load_entries(path: Path) -> list[dict[str, Any]]:
                 payload = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            if isinstance(payload, dict) and isinstance(payload.get("text"), str):
+            if isinstance(payload, dict):
                 entries.append(payload)
     return entries
+
+
+def extract_entry_text(entry: dict[str, Any]) -> str | None:
+    text = entry.get("text")
+    if isinstance(text, str) and text.strip():
+        return text
+
+    parts: list[str] = []
+    for key in ("event", "type", "kind", "status", "reason", "message"):
+        value = entry.get(key)
+        if isinstance(value, str) and value.strip():
+            parts.append(value.strip())
+    if entry.get("turn_aborted") is True:
+        parts.append("turn_aborted")
+    if not parts:
+        return None
+    return " ".join(parts)
+
+
+def classify_workflow_signal(entry: dict[str, Any]) -> str | None:
+    if entry.get("turn_aborted") is True:
+        return "turn_aborted notices"
+
+    structured_values = []
+    for key in ("event", "type", "kind", "status", "reason", "message"):
+        value = entry.get(key)
+        if isinstance(value, str) and value.strip():
+            structured_values.append(normalize_text(value))
+
+    for label, markers in STRUCTURED_WORKFLOW_SIGNAL_RULES:
+        for value in structured_values:
+            if any(marker in value for marker in markers):
+                return label
+
+    text = entry.get("text")
+    if isinstance(text, str) and text.strip():
+        normalized_text = normalize_text(text)
+        for label, markers in TEXT_WORKFLOW_SIGNAL_RULES:
+            if any(marker in normalized_text for marker in markers):
+                return label
+    return None
 
 
 def top_examples(counter: Counter[str], top: int, min_frequency: int) -> list[dict[str, Any]]:
@@ -115,7 +170,7 @@ def top_examples(counter: Counter[str], top: int, min_frequency: int) -> list[di
 
 
 def build_summary(entries: list[dict[str, Any]], top: int, min_frequency: int) -> dict[str, Any]:
-    texts = [entry["text"] for entry in entries]
+    texts = [text for text in (extract_entry_text(entry) for entry in entries) if text]
     normalized = [normalize_text(text) for text in texts if text.strip()]
     repeated_counter = Counter(
         text for text in normalized if 12 <= len(text) <= 240
@@ -125,6 +180,9 @@ def build_summary(entries: list[dict[str, Any]], top: int, min_frequency: int) -
     )
     correction_counter = Counter(
         text for text in normalized if any(marker in text for marker in CORRECTION_MARKERS)
+    )
+    workflow_signal_counter = Counter(
+        label for label in (classify_workflow_signal(entry) for entry in entries) if label
     )
 
     tool_counter: Counter[str] = Counter()
@@ -156,6 +214,7 @@ def build_summary(entries: list[dict[str, Any]], top: int, min_frequency: int) -
         "repeated_requests": top_examples(repeated_counter, top, min_frequency),
         "preference_signals": top_examples(preference_counter, top, min_frequency),
         "correction_signals": top_examples(correction_counter, top, min_frequency),
+        "workflow_signals": top_examples(workflow_signal_counter, top, 1),
         "tool_mentions": [
             {"tool": tool, "count": count}
             for tool, count in tool_counter.most_common(top)
@@ -186,6 +245,7 @@ def render_markdown(summary: dict[str, Any], history_path: Path) -> str:
     add_section("Repeated Requests", summary["repeated_requests"])
     add_section("Preference Signals", summary["preference_signals"])
     add_section("Correction Signals", summary["correction_signals"])
+    add_section("Workflow Signals", summary["workflow_signals"])
 
     lines.extend(["", "## Tool Mentions"])
     if not summary["tool_mentions"]:

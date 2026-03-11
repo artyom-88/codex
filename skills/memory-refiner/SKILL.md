@@ -24,8 +24,9 @@ Use this skill when the user asks to:
 ### 1. Collect Evidence
 
 - Use the current conversation as the highest-signal short-term evidence.
+- Treat interruption or abort notices in the current conversation (for example `Conversation interrupted` or `turn_aborted`) as workflow signals, even if they do not appear in `history.jsonl`.
 - Run `python3 scripts/scan_history.py --format markdown` to summarize `~/.codex/history.jsonl`.
-- Look for repeated preferences, repeated corrections, approval friction, context bloat, stale guidance, and recurring task patterns.
+- Look for repeated preferences, repeated corrections, interruption or abort signals, approval friction, context bloat, stale guidance, and recurring task patterns.
 
 ### 2. Audit Active Memory Surfaces
 
