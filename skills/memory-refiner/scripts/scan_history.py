@@ -123,17 +123,7 @@ def extract_entry_text(entry: dict[str, Any]) -> str | None:
     text = entry.get("text")
     if isinstance(text, str) and text.strip():
         return text
-
-    parts: list[str] = []
-    for key in ("event", "type", "kind", "status", "reason", "message"):
-        value = entry.get(key)
-        if isinstance(value, str) and value.strip():
-            parts.append(value.strip())
-    if entry.get("turn_aborted") is True:
-        parts.append("turn_aborted")
-    if not parts:
-        return None
-    return " ".join(parts)
+    return None
 
 
 def classify_workflow_signal(entry: dict[str, Any]) -> str | None:
@@ -214,7 +204,7 @@ def build_summary(entries: list[dict[str, Any]], top: int, min_frequency: int) -
         "repeated_requests": top_examples(repeated_counter, top, min_frequency),
         "preference_signals": top_examples(preference_counter, top, min_frequency),
         "correction_signals": top_examples(correction_counter, top, min_frequency),
-        "workflow_signals": top_examples(workflow_signal_counter, top, 1),
+        "workflow_signals": top_examples(workflow_signal_counter, top, min_frequency),
         "tool_mentions": [
             {"tool": tool, "count": count}
             for tool, count in tool_counter.most_common(top)
