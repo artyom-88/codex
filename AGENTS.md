@@ -31,6 +31,7 @@ Apply these defaults across all projects.
 - The entries below are an index of available guidance. Do not load them by default; load only the specific file or files that are relevant to the current task.
 - `instructions/workflow/core.md` contains general execution guidance for inspecting context, making focused changes, and verifying with evidence. Load only when general workflow guidance is needed.
 - `instructions/workflow/communication.md` contains progress-update and response-structure guidance. Load only when the task involves substantive interactive work.
+- `instructions/workflow/github.md` contains GitHub branch and pull request workflow defaults. Load only when GitHub workflow work is relevant.
 - `instructions/workflow/safety.md` contains guidance for destructive actions, user-owned changes, and remote-affecting steps. Load only when the task has operational risk.
 - `instructions/workflow/skills.md` contains skill provenance and maintenance guidance. Load only when skill work is relevant.
 - `instructions/tasks/debugging.md` contains debugging guidance for reproducing failures and isolating root causes. Load only for debugging work.
