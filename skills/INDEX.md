@@ -20,4 +20,5 @@ These are public skills installed from the Codex skills registry or another exte
 
 These were developed in the current project and can be maintained locally.
 
+- `code-review`
 - `memory-refiner`

@@ -34,4 +34,6 @@ __pycache__/
 !/skills/
 /skills/*
 !/skills/INDEX.md
+# Add an explicit allowlist entry for each new local skill that is safe to share.
+!/skills/code-review/
 !/skills/memory-refiner/
