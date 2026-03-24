@@ -11,6 +11,7 @@ Everything is private by default. A file is eligible for publishing only if it i
 ## Current public set
 
 - `AGENTS.md`
+- `.codex/AGENTS.md`
 - `.pylintrc`
 - `config.example.toml`
 - everything under `.github/`
@@ -30,6 +31,11 @@ System skills under `skills/.system/` stay private.
 4. Stage only the intended paths with `git add <path>`.
 5. Review the staged diff with `git diff --cached`.
 6. Commit and push only after the staged diff contains no secrets, local state, or project-specific details.
+
+## Repo-Local Codex Guidance
+
+- Keep repo-specific Codex workflow rules in `.codex/AGENTS.md`.
+- Do not move shareable-skill publishing workflow into the global root `AGENTS.md`.
 
 ## Shared config template
 

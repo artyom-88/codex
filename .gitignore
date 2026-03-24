@@ -8,6 +8,11 @@
 !config.example.toml
 !.pylintrc
 
+# Repo-local Codex guidance
+!/.codex/
+/.codex/*
+!/.codex/AGENTS.md
+
 # Generated Python files stay private everywhere
 __pycache__/
 *.pyc

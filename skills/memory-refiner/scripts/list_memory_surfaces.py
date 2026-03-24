@@ -23,6 +23,7 @@ PROJECT_MARKERS = (
 )
 
 LOCAL_CODEX_SUFFIXES = {".md", ".toml", ".rules", ".yaml", ".yml"}
+PROJECT_ARTIFACT_DIRS = {"code-review", "debug", "diff", "plans"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -118,23 +119,35 @@ def collect_global_surfaces(codex_home: Path) -> list[dict[str, Any]]:
     return surfaces
 
 
-def collect_project_surfaces(project_root: Path | None) -> list[dict[str, Any]]:
+def collect_project_surfaces(project_root: Path | None) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     if project_root is None:
-        return []
+        return [], []
 
     surfaces: list[dict[str, Any]] = []
+    artifacts: list[dict[str, Any]] = []
     agents = project_root / "AGENTS.md"
     if agents.exists():
         surfaces.append(file_record(agents, "repo-local", "instruction-root", project_root))
 
     local_codex = project_root / ".codex"
     if local_codex.exists():
+        project_agents = local_codex / "AGENTS.md"
+        if project_agents.exists():
+            surfaces.append(file_record(project_agents, "project-local", "instruction-root", project_root))
         for path in sorted(local_codex.rglob("*")):
-            if not path.is_file() or path.suffix not in LOCAL_CODEX_SUFFIXES:
+            if not path.is_file():
+                continue
+            rel_path = path.relative_to(local_codex)
+            if rel_path.parts and rel_path.parts[0] in PROJECT_ARTIFACT_DIRS:
+                artifacts.append(file_record(path, "project-local", "project-artifact", project_root))
+                continue
+            if path.suffix not in LOCAL_CODEX_SUFFIXES:
+                continue
+            if path == project_agents:
                 continue
             surfaces.append(file_record(path, "project-local", "local-codex", project_root))
 
-    return surfaces
+    return surfaces, artifacts
 
 
 def render_markdown(payload: dict[str, Any]) -> str:
@@ -155,6 +168,7 @@ def render_markdown(payload: dict[str, Any]) -> str:
 
     add_group("Global Surfaces", payload["global_surfaces"])
     add_group("Project Surfaces", payload["project_surfaces"])
+    add_group("Project Artifacts", payload["project_artifacts"])
     return "\n".join(lines)
 
 
@@ -164,12 +178,15 @@ def main() -> int:
     cwd = Path(args.cwd).expanduser().resolve()
     project_root = resolve_project_root(cwd)
 
+    project_surfaces, project_artifacts = collect_project_surfaces(project_root)
+
     payload = {
         "codex_home": str(codex_home),
         "cwd": str(cwd),
         "project_root": str(project_root) if project_root else None,
         "global_surfaces": collect_global_surfaces(codex_home),
-        "project_surfaces": collect_project_surfaces(project_root),
+        "project_surfaces": project_surfaces,
+        "project_artifacts": project_artifacts,
     }
 
     if args.format == "json":
