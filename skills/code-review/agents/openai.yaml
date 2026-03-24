@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Review"
+  short_description: "Review branches, PRs, and change sets"
+  default_prompt: "Use $code-review to review the current branch changes and highlight regressions, risks, and missing tests."

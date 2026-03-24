@@ -17,6 +17,7 @@ Everything is private by default. A file is eligible for publishing only if it i
 - everything under `.githooks/`
 - everything under `instructions/`
 - `rules/global.rules`
+- everything under `skills/code-review/`
 - everything under `skills/memory-refiner/`
 
 System skills under `skills/.system/` stay private.
@@ -25,9 +26,10 @@ System skills under `skills/.system/` stay private.
 
 1. Review the file contents and confirm they are client-agnostic and safe to share.
 2. Add the folder or exact path to `.gitignore` if it is not already allowlisted.
-3. Stage only the intended paths with `git add <path>`.
-4. Review the staged diff with `git diff --cached`.
-5. Commit and push only after the staged diff contains no secrets, local state, or project-specific details.
+3. When adding a new shareable local skill, add an explicit `!/skills/<skill-name>/` allowlist rule before staging it.
+4. Stage only the intended paths with `git add <path>`.
+5. Review the staged diff with `git diff --cached`.
+6. Commit and push only after the staged diff contains no secrets, local state, or project-specific details.
 
 ## Shared config template
 
