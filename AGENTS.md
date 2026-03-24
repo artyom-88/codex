@@ -1,34 +1,35 @@
 # Global Codex Instructions
 
-Apply these defaults across all projects.
+Use this file for global routing and defaults, not detailed task guidance.
 
 ## Core
 
-- Ground yourself in the actual environment before making claims or proposing changes.
-- Prefer existing project conventions, tools, and workflows over generic defaults.
-- Ask only when the answer cannot be discovered locally or when product intent or tradeoffs matter.
-- Be concise by default. Add detail only when the task or risk level requires it.
-- Keep facts, assumptions, and recommendations clearly separated.
-- Avoid destructive actions unless the user explicitly asks for them.
 - Promote new global guidance only when it is supported by repeated evidence across sessions or repositories; do not turn one-off incidents into permanent memory.
 
 ## Loading Policy
 
 - Keep this root file small.
-- Load extra instruction files only when they are clearly relevant to the task.
+- Load extra instruction files only when they are relevant to the task.
 - Do not bulk-load instruction folders.
-- Treat file references in this root file as a lazy-load index, not a default read list.
+- Treat file references in this root file as a lazy-load index, not as instructions to load by default.
 - Prefer the minimum number of extra files needed to do the work well.
 - When a repo needs a local `AGENTS.md`, keep it limited to repo-specific overrides, discovery metadata, and local workflow notes. Do not repeat global defaults.
+
+## Project Artifacts
+
+- Prefer storing repo-specific Codex artifacts under the repo-local `.codex/` directory instead of `/tmp`.
+- Use stable subfolders when helpful: `.codex/code-review/` for PR or review snapshots, `.codex/debug/` for repro notes and logs, `.codex/diff/` for saved patches or comparisons, `.codex/plans/` for deferred plans, and `.codex/rules/` for project approval rules.
+- Name artifacts descriptively and include the branch name or PR/MR number when relevant.
 
 ## Scope Precedence
 
 - Prefer the narrowest applicable instruction scope: project-local `.codex/` over repo-local `AGENTS.md` over global `~/.codex`.
 - If guidance is duplicated across scopes, remove the broader duplicate instead of maintaining both copies.
+- For `.codex/rules/*.rules`, matching rules are merged across scopes and the most restrictive decision wins; local rules do not override a broader `prompt` or `forbidden` rule.
 
 ## Instruction Layout
 
-- The entries below are an index of available guidance. Do not load them by default; load only the specific file or files that are relevant to the current task.
+- The entries below are an index of available guidance. Do not load them by default.
 - `instructions/workflow/core.md` contains general execution guidance for inspecting context, making focused changes, and verifying with evidence. Load only when general workflow guidance is needed.
 - `instructions/workflow/communication.md` contains progress-update and response-structure guidance. Load only when the task involves substantive interactive work.
 - `instructions/workflow/github.md` contains GitHub branch and pull request workflow defaults. Load only when GitHub workflow work is relevant.
