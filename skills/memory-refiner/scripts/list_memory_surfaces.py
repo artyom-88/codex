@@ -23,7 +23,7 @@ PROJECT_MARKERS = (
 )
 
 LOCAL_CODEX_SUFFIXES = {".md", ".toml", ".rules", ".yaml", ".yml"}
-PROJECT_ARTIFACT_DIRS = {"code-review", "debug", "diff", "plans"}
+PROJECT_ARTIFACT_DIRS = {"code-review", "debug", "diff", "plans", "reports"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -126,7 +126,8 @@ def collect_project_surfaces(project_root: Path | None) -> tuple[list[dict[str, 
     surfaces: list[dict[str, Any]] = []
     artifacts: list[dict[str, Any]] = []
     agents = project_root / "AGENTS.md"
-    if agents.exists():
+    codex_home = Path.home() / ".codex"
+    if agents.exists() and not (project_root == codex_home and agents == codex_home / "AGENTS.md"):
         surfaces.append(file_record(agents, "repo-local", "instruction-root", project_root))
 
     local_codex = project_root / ".codex"
