@@ -4,3 +4,10 @@
 
 model = "gpt-5.4"
 model_reasoning_effort = "xhigh"
+
+[mcp_servers.sequential_thinking]
+command = "docker"
+args = ["run", "--rm", "-i", "mcp/sequentialthinking"]
+enabled = true
+startup_timeout_sec = 20
+tool_timeout_sec = 60
