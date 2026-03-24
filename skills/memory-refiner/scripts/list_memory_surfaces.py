@@ -135,11 +135,13 @@ def collect_project_surfaces(project_root: Path | None) -> tuple[list[dict[str, 
         if project_agents.exists():
             surfaces.append(file_record(project_agents, "project-local", "instruction-root", project_root))
         for path in sorted(local_codex.rglob("*")):
-            if not path.is_file() or path.suffix not in LOCAL_CODEX_SUFFIXES:
+            if not path.is_file():
                 continue
             rel_path = path.relative_to(local_codex)
             if rel_path.parts and rel_path.parts[0] in PROJECT_ARTIFACT_DIRS:
                 artifacts.append(file_record(path, "project-local", "project-artifact", project_root))
+                continue
+            if path.suffix not in LOCAL_CODEX_SUFFIXES:
                 continue
             if path == project_agents:
                 continue
