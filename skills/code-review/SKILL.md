@@ -19,7 +19,7 @@ Perform a risk-first review of the most relevant git change set. Prefer concrete
 
 1. Resolve the review scope.
 - Prefer the exact target named by the user.
-- Otherwise review the current branch against its merge base with the default branch.
+- Otherwise discover the repository's default branch and review the current branch against its merge base with that branch.
 - If there are no branch commits to review, fall back to staged or unstaged local changes.
 - For GitHub or GitLab review requests, load remote context only when the CLI is available and authenticated.
 
@@ -46,7 +46,9 @@ Perform a risk-first review of the most relevant git change set. Prefer concrete
 - If there are no findings, say so directly and mention residual risk or verification gaps.
 
 6. Export the review artifact.
-- Unless the user explicitly asks for chat-only output, write the final review to repo-local `.codex/code-review/review-<target>.md`.
+- Unless the user explicitly asks for chat-only output, write the final review to repo-local `.codex/code-review/review-<target-slug>.md`.
+- Derive `<target-slug>` from the review target by lowercasing it, replacing `/`, `\\`, whitespace, and other path separators with `-`, removing other unsafe filename characters, and collapsing repeated `-`.
+- If there is no stable target name, fall back to `head-<short-sha>`.
 - Mention the saved path in the response.
 - Save extra artifacts such as diff patches only when the user asks for them or they materially help with a large review.
 

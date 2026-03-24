@@ -5,7 +5,7 @@ Load this file when the review target, diff base, or remote host context is uncl
 ## Source Selection Order
 
 1. Use the exact target the user names.
-2. Otherwise review the current branch against the default branch merge base.
+2. Otherwise discover the repository's default branch and review the current branch against that merge base.
 3. If there is no branch delta, review staged and unstaged changes.
 4. If the user asks about a PR or MR, prefer host metadata in addition to the local diff.
 
@@ -17,11 +17,13 @@ Use `git --no-pager` for review commands so output stays compact.
 
 - `git --no-pager branch --show-current`
 - `git --no-pager status --short`
-- `git --no-pager merge-base origin/main HEAD`
+- Discover the remote to use. Prefer the current branch upstream remote; otherwise prefer `origin`.
+- Resolve the default branch ref from that remote, for example with `git --no-pager symbolic-ref refs/remotes/<remote>/HEAD`.
+- `git --no-pager merge-base <remote>/<default-branch> HEAD`
 - `git --no-pager diff --stat <merge-base>...HEAD`
 - `git --no-pager diff <merge-base>...HEAD`
 
-If `origin/main` is missing, prefer the remote default branch when known. Fall back to local `main` only when remote information is unavailable.
+If the remote default branch ref is unavailable, prefer host metadata when `gh` or `glab` is available. Fall back to local `main` only when no authoritative default-branch source is available.
 
 ### Staged or Unstaged Changes
 
@@ -60,8 +62,9 @@ If the host CLI is unavailable, unauthenticated, or blocked by sandboxing, say s
 
 Prefer repo-local `.codex/code-review/` for review artifacts. Create the directory when missing.
 
-- Diff artifact: `.codex/code-review/diff-<target>.patch`
-- Review artifact: `.codex/code-review/review-<target>.md`
+- Derive `<target-slug>` before writing files: lowercase the review target, replace `/`, `\\`, whitespace, and other path separators with `-`, remove remaining unsafe filename characters, and collapse repeated `-`. If there is no stable target name, use `head-<short-sha>`.
+- Diff artifact: `.codex/code-review/diff-<target-slug>.patch`
+- Review artifact: `.codex/code-review/review-<target-slug>.md`
 
 Write the review artifact by default when the skill is explicitly invoked, unless the user asks for chat-only output.
 Use descriptive names. Include the branch name, PR number, or ticket identifier when available. Overwrite the same review path on reruns unless the user asks to preserve history.
