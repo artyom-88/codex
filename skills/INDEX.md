@@ -1,6 +1,6 @@
 # Skills Index
 
-This file tracks skill provenance and ownership for the current Codex home.
+This file tracks skill provenance, ownership, and shareability for the current Codex home.
 
 ## System Skills
 
