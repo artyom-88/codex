@@ -9,3 +9,5 @@
 ## Project Artifacts
 
 - Treat `.codex/code-review/`, `.codex/plans/`, `.codex/diff/`, and `.codex/debug/` as generated repo artifacts, not instruction layers.
+- Treat `.codex/reports/` as generated repo artifacts, not an instruction layer.
+- Store generated threat models, security reviews, and similar one-off reports under `.codex/reports/`, not directly under `.codex/`.

@@ -23,7 +23,7 @@ PROJECT_MARKERS = (
 )
 
 LOCAL_CODEX_SUFFIXES = {".md", ".toml", ".rules", ".yaml", ".yml"}
-PROJECT_ARTIFACT_DIRS = {"code-review", "debug", "diff", "plans"}
+PROJECT_ARTIFACT_DIRS = {"code-review", "debug", "diff", "plans", "reports"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -119,14 +119,16 @@ def collect_global_surfaces(codex_home: Path) -> list[dict[str, Any]]:
     return surfaces
 
 
-def collect_project_surfaces(project_root: Path | None) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def collect_project_surfaces(
+    project_root: Path | None, codex_home: Path
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     if project_root is None:
         return [], []
 
     surfaces: list[dict[str, Any]] = []
     artifacts: list[dict[str, Any]] = []
     agents = project_root / "AGENTS.md"
-    if agents.exists():
+    if agents.exists() and not (project_root == codex_home and agents == codex_home / "AGENTS.md"):
         surfaces.append(file_record(agents, "repo-local", "instruction-root", project_root))
 
     local_codex = project_root / ".codex"
@@ -178,7 +180,7 @@ def main() -> int:
     cwd = Path(args.cwd).expanduser().resolve()
     project_root = resolve_project_root(cwd)
 
-    project_surfaces, project_artifacts = collect_project_surfaces(project_root)
+    project_surfaces, project_artifacts = collect_project_surfaces(project_root, codex_home)
 
     payload = {
         "codex_home": str(codex_home),
