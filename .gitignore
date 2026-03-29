@@ -42,3 +42,8 @@ __pycache__/
 # Add an explicit allowlist entry for each new local skill that is safe to share.
 !/skills/code-review/
 !/skills/memory-refiner/
+
+# Shareable telemetry tools
+!/tools/
+/tools/*
+!/tools/signoz-codex/

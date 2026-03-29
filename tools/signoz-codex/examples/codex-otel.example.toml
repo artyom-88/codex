@@ -1,0 +1,12 @@
+# Codex OpenTelemetry settings for the local SigNoz Codex stack.
+# Merge the safe parts you want into ~/.codex/config.toml.
+# This assumes the helper stack is listening on localhost:5317.
+# With log_user_prompt = false, codex.user_prompt events still exist but the prompt value is redacted.
+# Set it to true only if you explicitly want raw prompt text in SigNoz logs.
+
+[otel]
+log_user_prompt = false
+environment = "dev"
+exporter = { otlp-grpc = { endpoint = "http://127.0.0.1:5317" } }
+trace_exporter = { otlp-grpc = { endpoint = "http://127.0.0.1:5317" } }
+metrics_exporter = { otlp-grpc = { endpoint = "http://127.0.0.1:5317" } }

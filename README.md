@@ -20,6 +20,7 @@ Everything is private by default. A file is eligible for publishing only if it i
 - `rules/global.rules`
 - everything under `skills/code-review/`
 - everything under `skills/memory-refiner/`
+- everything under `tools/signoz-codex/`
 
 System skills under `skills/.system/` stay private.
 
