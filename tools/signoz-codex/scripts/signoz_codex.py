@@ -98,7 +98,7 @@ def show_status() -> int:
     log_info("OTLP gRPC: localhost:5317")
     log_info("OTLP HTTP: http://localhost:5318")
     log_info(f"Primary dashboard: {PROJECT_ROOT / 'dashboards' / 'codex-native-dashboard.json'}")
-    log_info("Query helper: ./scripts/signoz_codex.py sql \"SELECT 1\"")
+    log_info("Query helper: ./scripts/signoz-codex sql-read \"SELECT 1\"")
     config_result = run_local_script(CONFIG_CHECK_SCRIPT, "--quiet")
     if config_result.returncode != 0:
         print("")
@@ -229,6 +229,21 @@ def run_clickhouse_query(extra_args: list[str]) -> int:
     return result.returncode
 
 
+def build_sql_args(args: argparse.Namespace, readonly: bool = False) -> list[str]:
+    extra: list[str] = []
+    if readonly:
+        extra.append("--readonly")
+    if args.file:
+        extra.extend(["--file", args.file])
+    if args.format:
+        extra.extend(["--format", args.format])
+    if args.multiquery:
+        extra.append("--multiquery")
+    if args.query:
+        extra.append(args.query)
+    return extra
+
+
 def config_check() -> int:
     run_compose("config", "-q")
     log_info("Compose configuration is valid")
@@ -279,6 +294,12 @@ def build_parser() -> argparse.ArgumentParser:
     sql_parser.add_argument("--format")
     sql_parser.add_argument("--multiquery", action="store_true")
 
+    sql_read_parser = subparsers.add_parser("sql-read")
+    sql_read_parser.add_argument("query", nargs='?')
+    sql_read_parser.add_argument("--file")
+    sql_read_parser.add_argument("--format")
+    sql_read_parser.add_argument("--multiquery", action="store_true")
+
     subparsers.add_parser("cleanup")
     subparsers.add_parser("purge")
     return parser
@@ -300,6 +321,7 @@ def main(argv: list[str] | None = None) -> int:
         'verify',
         'doctor',
         'sql',
+        'sql-read',
         'cleanup',
         'purge',
     }
@@ -327,16 +349,9 @@ def main(argv: list[str] | None = None) -> int:
     if command == 'doctor':
         return doctor(args.minutes)
     if command == 'sql':
-        extra: list[str] = []
-        if args.file:
-            extra.extend(["--file", args.file])
-        if args.format:
-            extra.extend(["--format", args.format])
-        if args.multiquery:
-            extra.append("--multiquery")
-        if args.query:
-            extra.append(args.query)
-        return run_clickhouse_query(extra)
+        return run_clickhouse_query(build_sql_args(args))
+    if command == 'sql-read':
+        return run_clickhouse_query(build_sql_args(args, readonly=True))
     if command == 'cleanup':
         return cleanup()
     if command == 'purge':

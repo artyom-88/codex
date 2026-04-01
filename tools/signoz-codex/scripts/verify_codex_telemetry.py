@@ -177,6 +177,31 @@ def main() -> int:
     )
     print_rows("Top Log Event Names", log_event_rows, ["event_name", "rows"])
 
+    project_rows = parse_tsv(
+        query_clickhouse(
+            f"""
+            SELECT
+              attributes_string['cwd'] AS cwd,
+              arrayStringConcat(arraySort(groupUniqArray(name)), ', ') AS span_names,
+              toString(count()) AS spans
+            FROM signoz_traces.distributed_signoz_index_v3
+            WHERE serviceName = '{args.service}'
+              AND timestamp >= now() - INTERVAL {args.minutes} MINUTE
+              AND mapContains(attributes_string, 'cwd')
+            GROUP BY cwd
+            ORDER BY count() DESC, cwd ASC
+            LIMIT 20
+            """
+        )
+    )
+    if project_rows:
+        print_rows("Trace CWD Values", project_rows, ["cwd", "span_names", "spans"])
+        print(f"  {YELLOW}project context is partial: cwd is currently only visible on trace spans, not native Codex logs/metrics{RESET}")
+    else:
+        print_heading("Trace CWD Values")
+        print(f"  {YELLOW}no project-identifying trace attributes found in the selected window{RESET}")
+        print(f"  {YELLOW}native Codex logs and metrics currently do not expose a project dimension{RESET}")
+
     return 0
 
 

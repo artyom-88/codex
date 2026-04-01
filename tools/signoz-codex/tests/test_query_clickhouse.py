@@ -27,6 +27,26 @@ class QueryClickhouseTests(unittest.TestCase):
             args = MODULE.parse_args(["--file", str(path)])
             self.assertEqual(MODULE.load_query(args), "SELECT 42")
 
+    def test_split_sql_statements_ignores_semicolons_in_strings(self) -> None:
+        statements = MODULE.split_sql_statements("SELECT ';' AS semi; SELECT 2")
+        self.assertEqual(statements, ["SELECT ';' AS semi", "SELECT 2"])
+
+    def test_validate_readonly_query_accepts_select_and_show(self) -> None:
+        MODULE.validate_readonly_query("SELECT 1; SHOW TABLES")
+
+    def test_validate_readonly_query_accepts_cte_select(self) -> None:
+        MODULE.validate_readonly_query("WITH numbers AS (SELECT 1) SELECT * FROM numbers")
+
+    def test_validate_readonly_query_rejects_insert(self) -> None:
+        with self.assertRaises(SystemExit) as error:
+            MODULE.validate_readonly_query("INSERT INTO t SELECT 1")
+        self.assertIn("sql-read only allows read queries", str(error.exception))
+
+    def test_validate_readonly_query_rejects_write_in_multiquery(self) -> None:
+        with self.assertRaises(SystemExit) as error:
+            MODULE.validate_readonly_query("SELECT 1; DROP TABLE t")
+        self.assertIn("DROP TABLE t", str(error.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

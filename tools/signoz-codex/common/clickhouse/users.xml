@@ -28,6 +28,15 @@
 
     <!-- Users and ACL. -->
     <users>
+        <codex_readonly>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <no_password/>
+            <profile>readonly</profile>
+            <quota>default</quota>
+        </codex_readonly>
+
         <!-- If user name was not specified, 'default' user is used. -->
         <default>
             <!-- See also the files in users.d directory where the password can be overridden.

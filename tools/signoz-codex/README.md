@@ -9,16 +9,19 @@ Local SigNoz + OpenTelemetry stack for inspecting native Codex telemetry.
 - A primary native dashboard for Codex OTEL metrics
 
 Use a single entry point for operations:
-- `./scripts/signoz_codex.py <command>`
+- `./scripts/signoz-codex <command>`
+
+Script-level details live in:
+- `scripts/README.md`
 
 Native Codex telemetry is best explored through the native dashboard plus SigNoz's built-in Services, Traces, and Logs views. Import `dashboards/codex-native-dashboard.json` first.
 
 ## Quick Start
 
 1. Validate your Codex OTEL config:
-   `./scripts/signoz_codex.py check-config`
+   `./scripts/signoz-codex check-config`
 2. Start the stack:
-   `./scripts/signoz_codex.py start`
+   `./scripts/signoz-codex start`
 3. Open SigNoz:
    `http://localhost:8105`
 4. Import the primary dashboard from:
@@ -28,7 +31,7 @@ Native Codex telemetry is best explored through the native dashboard plus SigNoz
    into `~/.codex/config.toml`
 6. Start a fresh Codex session and generate activity.
 7. Verify native telemetry:
-   `./scripts/signoz_codex.py verify`
+   `./scripts/signoz-codex verify`
 
 ## Ports
 
@@ -40,33 +43,36 @@ These ports intentionally differ from the existing Claude-focused stack so both 
 
 ## Helper Commands
 
-- `./scripts/signoz_codex.py start`
-- `./scripts/signoz_codex.py start --force`
-- `./scripts/signoz_codex.py stop`
-- `./scripts/signoz_codex.py restart`
-- `./scripts/signoz_codex.py status`
-- `./scripts/signoz_codex.py logs`
-- `./scripts/signoz_codex.py logs otel-collector`
-- `./scripts/signoz_codex.py check-config`
-- `./scripts/signoz_codex.py health`
-- `./scripts/signoz_codex.py verify`
-- `./scripts/signoz_codex.py doctor`
-- `./scripts/signoz_codex.py config`
-- `./scripts/signoz_codex.py sql "SELECT count() FROM signoz_logs.distributed_logs_v2"`
+- `./scripts/signoz-codex start`
+- `./scripts/signoz-codex start --force`
+- `./scripts/signoz-codex stop`
+- `./scripts/signoz-codex restart`
+- `./scripts/signoz-codex status`
+- `./scripts/signoz-codex logs`
+- `./scripts/signoz-codex logs otel-collector`
+- `./scripts/signoz-codex check-config`
+- `./scripts/signoz-codex health`
+- `./scripts/signoz-codex verify`
+- `./scripts/signoz-codex doctor`
+- `./scripts/signoz-codex config`
+- `./scripts/signoz-codex sql-read "SELECT count() FROM signoz_logs.distributed_logs_v2"`
+- `./scripts/signoz-codex sql "OPTIMIZE TABLE signoz_logs.distributed_logs_v2 FINAL"`
 
 ## ClickHouse Queries
 
 Use the single entry point instead of the full `docker compose ... clickhouse-client` command:
 
-- `./scripts/signoz_codex.py sql "SELECT count() FROM signoz_logs.distributed_logs_v2"`
-- `./scripts/signoz_codex.py sql --format Vertical "SELECT attributes_string['event.name'], count() FROM signoz_logs.distributed_logs_v2 GROUP BY 1 ORDER BY count() DESC LIMIT 10"`
-- `./scripts/signoz_codex.py sql --file ./query.sql`
-- `cat ./query.sql | ./scripts/signoz_codex.py sql`
+- `./scripts/signoz-codex sql-read "SELECT count() FROM signoz_logs.distributed_logs_v2"`
+- `./scripts/signoz-codex sql-read --format Vertical "SELECT attributes_string['event.name'], count() FROM signoz_logs.distributed_logs_v2 GROUP BY 1 ORDER BY count() DESC LIMIT 10"`
+- `./scripts/signoz-codex sql-read --file ./query.sql`
+- `cat ./query.sql | ./scripts/signoz-codex sql-read`
+
+Use `sql` only when you intentionally need a non-read-only session for DDL, maintenance, or writes. `sql-read` rejects mutating statements before execution and connects with a dedicated read-only ClickHouse user.
 
 If you are using your shell alias, the same commands become:
 
-- `signoz-codex sql "SELECT count() FROM signoz_logs.distributed_logs_v2"`
-- `signoz-codex sql --format Vertical "SELECT * FROM signoz_metrics.time_series_v4 LIMIT 3"`
+- `signoz-codex sql-read "SELECT count() FROM signoz_logs.distributed_logs_v2"`
+- `signoz-codex sql-read --format Vertical "SELECT * FROM signoz_metrics.time_series_v4 LIMIT 3"`
 
 ## Logs Configuration
 
@@ -102,6 +108,22 @@ Useful live event names seen in this stack include:
 - `codex.sse_event`
 - `codex.user_prompt`
 
+## Project Context
+
+Current native Codex telemetry does not expose a project dimension across logs and metrics.
+
+What is available today:
+
+- some trace spans carry `attributes_string['cwd']`
+- in current observed data, that `cwd` is attached to `run_sampling_request` spans
+- this is enough to inspect some per-directory trace activity, but not enough to slice the main native dashboard by project
+
+Use `./scripts/signoz-codex verify` to print any observed `cwd` values from recent traces.
+
+If you want to inspect them directly:
+
+- `./scripts/signoz-codex sql-read --format TSV "SELECT attributes_string['cwd'] AS cwd, count() AS spans FROM signoz_traces.distributed_signoz_index_v3 WHERE serviceName='codex_cli_rs' AND mapContains(attributes_string, 'cwd') GROUP BY cwd ORDER BY spans DESC"`
+
 ## Validation
 
 - `python3 -m py_compile ./scripts/signoz_codex.py ./scripts/check_codex_config.py ./scripts/verify_codex_telemetry.py ./scripts/query_clickhouse.py`
@@ -112,7 +134,7 @@ Useful live event names seen in this stack include:
 - Cost analytics are intentionally out of scope for this project version.
 - The example OTEL snippet is based on the current local Codex parser behavior and verified against `codex features list`.
 - Start with `dashboards/codex-native-dashboard.json` for native Codex telemetry.
-- If a native Codex metric you care about is missing from the dashboard, inspect it first in SigNoz Services or via `./scripts/signoz_codex.py sql` and then extend the dashboard query set.
-- `./scripts/signoz_codex.py check-config` validates `~/.codex/config.toml` before you start or verify the stack.
-- `./scripts/signoz_codex.py verify` checks recent native `codex_cli_rs` logs, traces, tool calls, token totals, approval outcomes, websocket events, and top log event names.
-- `./scripts/signoz_codex.py doctor` runs config validation, stack health checks, and telemetry verification in one pass.
+- If a native Codex metric you care about is missing from the dashboard, inspect it first in SigNoz Services or via `./scripts/signoz-codex sql-read` and then extend the dashboard query set.
+- `./scripts/signoz-codex check-config` validates `~/.codex/config.toml` before you start or verify the stack.
+- `./scripts/signoz-codex verify` checks recent native `codex_cli_rs` logs, traces, tool calls, token totals, approval outcomes, websocket events, top log event names, and any trace-level `cwd` values.
+- `./scripts/signoz-codex doctor` runs config validation, stack health checks, and telemetry verification in one pass.
