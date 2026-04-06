@@ -24,6 +24,12 @@ PROJECT_MARKERS = (
 
 LOCAL_CODEX_SUFFIXES = {".md", ".toml", ".rules", ".yaml", ".yml"}
 PROJECT_ARTIFACT_DIRS = {"code-review", "debug", "diff", "plans", "reports"}
+LOCAL_CODEX_IGNORED_PREFIXES = {
+    (".tmp",),
+    ("plugins", "cache"),
+}
+LOCAL_CODEX_IGNORED_PARTS = {"__pycache__", ".venv", "node_modules"}
+LOCAL_CODEX_IGNORED_SUFFIXES = {".pyc"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -87,6 +93,15 @@ def file_record(path: Path, scope: str, category: str, display_base: Path | None
     }
 
 
+def should_skip_local_codex(rel_path: Path) -> bool:
+    parts = rel_path.parts
+    if any(part in LOCAL_CODEX_IGNORED_PARTS for part in parts):
+        return True
+    if rel_path.suffix in LOCAL_CODEX_IGNORED_SUFFIXES:
+        return True
+    return any(parts[: len(prefix)] == prefix for prefix in LOCAL_CODEX_IGNORED_PREFIXES)
+
+
 def collect_global_surfaces(codex_home: Path) -> list[dict[str, Any]]:
     surfaces: list[dict[str, Any]] = []
     agents = codex_home / "AGENTS.md"
@@ -133,6 +148,8 @@ def collect_project_surfaces(
 
     local_codex = project_root / ".codex"
     if local_codex.exists():
+        if local_codex.resolve() == codex_home:
+            return surfaces, artifacts
         project_agents = local_codex / "AGENTS.md"
         if project_agents.exists():
             surfaces.append(file_record(project_agents, "project-local", "instruction-root", project_root))
@@ -140,6 +157,8 @@ def collect_project_surfaces(
             if not path.is_file():
                 continue
             rel_path = path.relative_to(local_codex)
+            if should_skip_local_codex(rel_path):
+                continue
             if rel_path.parts and rel_path.parts[0] in PROJECT_ARTIFACT_DIRS:
                 artifacts.append(file_record(path, "project-local", "project-artifact", project_root))
                 continue
