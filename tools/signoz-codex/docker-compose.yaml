@@ -85,7 +85,7 @@ services:
         mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
     restart: on-failure
     volumes:
-      - ./common/clickhouse/user_scripts:/var/lib/clickhouse/user_scripts/
+      - "${SIGNOZ_CODEX_CLICKHOUSE_USER_SCRIPTS:-./common/clickhouse/user_scripts}:/var/lib/clickhouse/user_scripts/"
 
   zookeeper-1:
     !!merge <<: *zookeeper-defaults
@@ -101,11 +101,11 @@ services:
   clickhouse:
     !!merge <<: *clickhouse-defaults
     volumes:
-      - ./common/clickhouse/config.xml:/etc/clickhouse-server/config.xml
-      - ./common/clickhouse/users.xml:/etc/clickhouse-server/users.xml
-      - ./common/clickhouse/custom-function.xml:/etc/clickhouse-server/custom-function.xml
-      - ./common/clickhouse/user_scripts:/var/lib/clickhouse/user_scripts/
-      - ./common/clickhouse/cluster.xml:/etc/clickhouse-server/config.d/cluster.xml
+      - "${SIGNOZ_CODEX_CLICKHOUSE_CONFIG:-./common/clickhouse/config.xml}:/etc/clickhouse-server/config.xml"
+      - "${SIGNOZ_CODEX_CLICKHOUSE_USERS:-./common/clickhouse/users.xml}:/etc/clickhouse-server/users.xml"
+      - "${SIGNOZ_CODEX_CLICKHOUSE_CUSTOM_FUNCTION:-./common/clickhouse/custom-function.xml}:/etc/clickhouse-server/custom-function.xml"
+      - "${SIGNOZ_CODEX_CLICKHOUSE_USER_SCRIPTS:-./common/clickhouse/user_scripts}:/var/lib/clickhouse/user_scripts/"
+      - "${SIGNOZ_CODEX_CLICKHOUSE_CLUSTER:-./common/clickhouse/cluster.xml}:/etc/clickhouse-server/config.d/cluster.xml"
       - clickhouse:/var/lib/clickhouse/
 
   signoz:
@@ -116,8 +116,8 @@ services:
     ports:
       - "8105:8080"
     volumes:
-      - ./common/signoz/prometheus.yml:/root/config/prometheus.yml
-      - ./common/signoz:/root/config/signoz-common
+      - "${SIGNOZ_CODEX_SIGNOZ_PROMETHEUS:-./common/signoz/prometheus.yml}:/root/config/prometheus.yml"
+      - "${SIGNOZ_CODEX_SIGNOZ_COMMON:-./common/signoz}:/root/config/signoz-common"
       - sqlite:/var/lib/signoz/
     environment:
       - SIGNOZ_ALERTMANAGER_PROVIDER=signoz
@@ -147,7 +147,7 @@ services:
       - --config=/etc/otel-collector-config.yaml
       - --feature-gates=-pkg.translator.prometheus.NormalizeName
     volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - "${SIGNOZ_CODEX_OTEL_COLLECTOR_CONFIG:-./otel-collector-config.yaml}:/etc/otel-collector-config.yaml"
     environment:
       - OTEL_RESOURCE_ATTRIBUTES=host.name=signoz-codex-host,os.type=linux
       - LOW_CARDINAL_EXCEPTION_GROUPING=false
