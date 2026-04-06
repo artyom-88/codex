@@ -6,6 +6,12 @@ Use this file for global routing and defaults, not detailed task guidance.
 
 - Promote new global guidance only when it is supported by repeated evidence across sessions or repositories; do not turn one-off incidents into permanent memory.
 
+## Security Default
+
+- Prefer secure-by-default choices when requirements are ambiguous.
+- Escalate scrutiny for secrets, credentials, authentication, permissions, external network access, and destructive operations.
+- Do not normalize insecure shortcuts in shared guidance; if a faster path weakens security, call out the tradeoff explicitly.
+
 ## Loading Policy
 
 - Keep this root file small.
@@ -20,6 +26,8 @@ Use this file for global routing and defaults, not detailed task guidance.
 - Prefer storing repo-specific Codex artifacts under the repo-local `.codex/` directory instead of `/tmp`.
 - Use stable subfolders when helpful: `.codex/code-review/` for PR or review snapshots, `.codex/debug/` for repro notes and logs, `.codex/diff/` for saved patches or comparisons, `.codex/plans/` for deferred plans, and `.codex/rules/` for project approval rules.
 - Name artifacts descriptively and include the branch name or PR/MR number when relevant.
+- Under `.codex/tools/`, keep operational helpers in topic-specific subfolders rather than the tools root, for example `.codex/tools/minikube/`.
+- When a tool subfolder contains operational scripts, launch agents, or recovery commands, add a short `README.md` in that subfolder explaining the setup and any external files involved.
 
 ## Scope Precedence
 
