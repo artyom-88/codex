@@ -43,7 +43,7 @@ If the selected Docker context is remote and a remote asset-sync command is conf
 - OTLP gRPC: `5317`
 - OTLP HTTP: `5318`
 
-These ports intentionally differ from the existing Claude-focused stack so both projects can coexist on one machine.
+These ports intentionally differ from the existing Claude-focused stack so both projects can coexist on one machine. By default, published ports bind to `127.0.0.1`, so the stack is reachable from the local machine only.
 
 ## Docker Runtime Model
 
@@ -67,9 +67,12 @@ The main controls are:
 - `SIGNOZ_CODEX_REMOTE_ASSETS_ROOT` to choose where config assets live on a remote engine host
 - `SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD` to run a local sync command before remote compose startup
 - `SIGNOZ_CODEX_STACK_HOST` to override the advertised UI/OTLP host
+- `SIGNOZ_CODEX_BIND_ADDR` to override the Docker bind address for published UI/OTLP ports
 - `SIGNOZ_CODEX_OTLP_ENDPOINT` to override the expected Codex OTLP endpoint directly
 
 Generic remote Docker engines are supported for inspection commands, but starting the stack requires either a local engine or a configured remote asset-sync command because the compose file bind-mounts project config files.
+
+Keep `SIGNOZ_CODEX_BIND_ADDR` at the default `127.0.0.1` for local use. Set it to `0.0.0.0` only when you intentionally need access from another host and accept exposing local telemetry endpoints on the reachable network.
 
 ## Using The Examples
 

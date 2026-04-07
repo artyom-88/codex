@@ -20,8 +20,3 @@
 
 - When equivalent helper scripts exist both in `skills/` and under `plugins/cache/`, prefer the canonical `skills/` path.
 - Avoid plugin-cache paths in commands unless the cached copy is the only available implementation.
-
-## Skill Helpers
-
-- When equivalent helper scripts exist both in `skills/` and under `plugins/cache/`, prefer the canonical `skills/` path.
-- Avoid plugin-cache paths in commands unless the cached copy is the only available implementation.

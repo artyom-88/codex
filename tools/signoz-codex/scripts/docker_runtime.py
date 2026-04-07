@@ -11,6 +11,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yaml"
 PROJECT_NAME = "signoz-codex"
+DEFAULT_BIND_ADDR = "127.0.0.1"
 
 
 def load_local_runtime_env() -> None:
@@ -58,6 +59,7 @@ class RuntimeConfig:
     engine_mode: str
     remote_assets_root: Path
     remote_asset_sync_cmd: str
+    bind_addr: str
     stack_host: str
     otlp_endpoint: str
 
@@ -157,6 +159,7 @@ def resolve_runtime() -> RuntimeConfig:
     otlp_endpoint = os.environ.get("SIGNOZ_CODEX_OTLP_ENDPOINT", "").strip() or f"http://{stack_host}:5317"
     remote_asset_sync_cmd = os.environ.get("SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD", "").strip()
     remote_assets_root = Path(os.environ.get("SIGNOZ_CODEX_REMOTE_ASSETS_ROOT", "/srv/signoz-codex"))
+    bind_addr = os.environ.get("SIGNOZ_CODEX_BIND_ADDR", "").strip() or DEFAULT_BIND_ADDR
 
     return RuntimeConfig(
         docker_context=context_name,
@@ -165,6 +168,7 @@ def resolve_runtime() -> RuntimeConfig:
         engine_mode=engine_mode,
         remote_assets_root=remote_assets_root,
         remote_asset_sync_cmd=remote_asset_sync_cmd,
+        bind_addr=bind_addr,
         stack_host=stack_host,
         otlp_endpoint=otlp_endpoint,
     )
@@ -190,6 +194,7 @@ def compose_args(*args: str, runtime: RuntimeConfig | None = None) -> list[str]:
 def compose_environment(runtime: RuntimeConfig | None = None) -> dict[str, str]:
     active_runtime = runtime or resolve_runtime()
     env = os.environ.copy()
+    env["SIGNOZ_CODEX_BIND_ADDR"] = active_runtime.bind_addr
     if not active_runtime.requires_remote_asset_sync:
         return env
     env.update({name: str(path) for name, path in remote_bind_mounts(active_runtime.remote_assets_root).items()})
@@ -202,6 +207,7 @@ def runtime_summary_lines(runtime: RuntimeConfig | None = None) -> list[str]:
         f"Docker context: {active_runtime.docker_context}",
         f"Context source: {active_runtime.docker_context_source}",
         f"Engine mode: {active_runtime.engine_mode}",
+        f"Bind address: {active_runtime.bind_addr}",
         f"Advertised stack host: {active_runtime.stack_host}",
         f"Expected OTLP endpoint: {active_runtime.otlp_endpoint}",
     ]

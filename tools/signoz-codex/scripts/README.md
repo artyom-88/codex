@@ -37,7 +37,10 @@ Optional runtime env vars:
 - `SIGNOZ_CODEX_REMOTE_ASSETS_ROOT` to choose the target asset directory on the remote engine host
 - `SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD` to run a local sync command before remote compose startup
 - `SIGNOZ_CODEX_STACK_HOST` to override the advertised UI and OTLP host
+- `SIGNOZ_CODEX_BIND_ADDR` to override the Docker bind address for published UI/OTLP ports
 - `SIGNOZ_CODEX_OTLP_ENDPOINT` to override the expected Codex OTLP endpoint directly
+
+`SIGNOZ_CODEX_BIND_ADDR` defaults to `127.0.0.1` so local telemetry endpoints are not reachable from other hosts. Use `0.0.0.0` only when you intentionally need remote/shared-host access.
 
 Recommended activation flow:
 

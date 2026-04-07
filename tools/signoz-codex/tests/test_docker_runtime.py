@@ -30,6 +30,7 @@ def runtime_env(**overrides: str) -> dict[str, str]:
         "SIGNOZ_CODEX_ENGINE_MODE",
         "SIGNOZ_CODEX_REMOTE_ASSETS_ROOT",
         "SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD",
+        "SIGNOZ_CODEX_BIND_ADDR",
         "SIGNOZ_CODEX_STACK_HOST",
         "SIGNOZ_CODEX_OTLP_ENDPOINT",
     ):
@@ -66,6 +67,7 @@ class DockerRuntimeTests(unittest.TestCase):
         self.assertEqual(runtime.docker_context, "default")
         self.assertEqual(runtime.engine_mode, "local")
         self.assertFalse(runtime.requires_remote_asset_sync)
+        self.assertEqual(runtime.bind_addr, "127.0.0.1")
         self.assertEqual(runtime.stack_host, "localhost")
 
     def test_resolve_runtime_uses_explicit_remote_context(self) -> None:
@@ -89,6 +91,34 @@ class DockerRuntimeTests(unittest.TestCase):
         self.assertEqual(runtime.docker_context_source, "env:DOCKER_CONTEXT")
         self.assertEqual(runtime.engine_mode, "remote")
         self.assertEqual(runtime.stack_host, "10.0.0.50")
+
+    def test_resolve_runtime_respects_explicit_bind_address(self) -> None:
+        inspect_json = json.dumps(
+            [
+                {
+                    "Endpoints": {
+                        "docker": {
+                            "Host": "unix:///var/run/docker.sock",
+                        }
+                    }
+                }
+            ]
+        )
+
+        with mock.patch.dict(os.environ, runtime_env(SIGNOZ_CODEX_BIND_ADDR="0.0.0.0"), clear=True):
+            with mock.patch.object(
+                MODULE,
+                "_run_docker",
+                side_effect=[
+                    completed("default\n"),
+                    completed(inspect_json),
+                ],
+            ):
+                runtime = MODULE.resolve_runtime()
+                env = MODULE.compose_environment(runtime=runtime)
+
+        self.assertEqual(runtime.bind_addr, "0.0.0.0")
+        self.assertEqual(env["SIGNOZ_CODEX_BIND_ADDR"], "0.0.0.0")
 
     def test_resolve_runtime_respects_explicit_remote_asset_sync_command(self) -> None:
         inspect_json = json.dumps(
@@ -157,12 +187,14 @@ class DockerRuntimeTests(unittest.TestCase):
             engine_mode="remote",
             remote_assets_root=Path("/srv/signoz-codex"),
             remote_asset_sync_cmd="",
+            bind_addr="127.0.0.1",
             stack_host="10.0.0.50",
             otlp_endpoint="http://10.0.0.50:5317",
         )
 
         lines = MODULE.runtime_summary_lines(runtime)
 
+        self.assertIn("Bind address: 127.0.0.1", lines)
         self.assertIn("Remote assets root: /srv/signoz-codex", lines)
         self.assertIn("Remote asset sync: not configured", lines)
 

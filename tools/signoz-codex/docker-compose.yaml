@@ -114,7 +114,7 @@ services:
     command:
       - --config=/root/config/prometheus.yml
     ports:
-      - "8105:8080"
+      - "${SIGNOZ_CODEX_BIND_ADDR:-127.0.0.1}:8105:8080"
     volumes:
       - "${SIGNOZ_CODEX_SIGNOZ_PROMETHEUS:-./common/signoz/prometheus.yml}:/root/config/prometheus.yml"
       - "${SIGNOZ_CODEX_SIGNOZ_COMMON:-./common/signoz}:/root/config/signoz-common"
@@ -152,8 +152,8 @@ services:
       - OTEL_RESOURCE_ATTRIBUTES=host.name=signoz-codex-host,os.type=linux
       - LOW_CARDINAL_EXCEPTION_GROUPING=false
     ports:
-      - "5317:4317"
-      - "5318:4318"
+      - "${SIGNOZ_CODEX_BIND_ADDR:-127.0.0.1}:5317:4317"
+      - "${SIGNOZ_CODEX_BIND_ADDR:-127.0.0.1}:5318:4318"
     depends_on:
       signoz:
         condition: service_healthy
