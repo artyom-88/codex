@@ -12,9 +12,13 @@ YELLOW = "\033[1;33m"
 RED = "\033[0;31m"
 RESET = "\033[0m"
 
-EXPECTED_ENDPOINT = "http://127.0.0.1:5317"
 CONFIG_PATH = Path.home() / ".codex" / "config.toml"
 EXAMPLE_PATH = Path(__file__).resolve().parents[1] / "examples" / "codex-otel.example.toml"
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from docker_runtime import expected_otlp_endpoint
 
 
 def ok(message: str, quiet: bool) -> None:
@@ -42,19 +46,31 @@ def extract_otlp_endpoint(raw: Any) -> str | None:
     return endpoint if isinstance(endpoint, str) else None
 
 
-def check_exporter(name: str, value: Any, quiet: bool) -> tuple[int, int]:
+def check_exporter(name: str, value: Any, quiet: bool, expected: str) -> tuple[int, int]:
     warnings = 0
     errors = 0
     endpoint = extract_otlp_endpoint(value)
-    if endpoint == EXPECTED_ENDPOINT:
-        ok(f"{name} endpoint is {EXPECTED_ENDPOINT}", quiet)
+    if endpoint == expected:
+        ok(f"{name} endpoint is {expected}", quiet)
     elif endpoint is None:
         error(f"{name} is missing or not configured for otlp-grpc", quiet)
         errors += 1
     else:
-        error(f"{name} endpoint is {endpoint!r} (expected {EXPECTED_ENDPOINT!r})", quiet)
+        error(f"{name} endpoint is {endpoint!r} (expected {expected!r})", quiet)
         errors += 1
     return warnings, errors
+
+
+def check_log_user_prompt(value: Any, quiet: bool) -> int:
+    warnings = 0
+    if value is False:
+        ok("log_user_prompt is false, so prompt text is redacted in exported codex.user_prompt events", quiet)
+    elif value is True:
+        ok("log_user_prompt is true, so raw prompt text is exported to logs", quiet)
+    else:
+        warn("log_user_prompt is unset", quiet)
+        warnings += 1
+    return warnings
 
 
 def parse_args() -> argparse.Namespace:
@@ -83,6 +99,7 @@ def main() -> int:
 
     warnings = 0
     errors = 0
+    endpoint = expected_otlp_endpoint()
 
     otel = config.get("otel")
     if not isinstance(otel, dict):
@@ -93,19 +110,11 @@ def main() -> int:
         ok("Found [otel] configuration block", quiet)
 
     for field_name in ("exporter", "trace_exporter", "metrics_exporter"):
-        field_warnings, field_errors = check_exporter(field_name, otel.get(field_name), quiet)
+        field_warnings, field_errors = check_exporter(field_name, otel.get(field_name), quiet, endpoint)
         warnings += field_warnings
         errors += field_errors
 
-    log_user_prompt = otel.get("log_user_prompt")
-    if log_user_prompt is False:
-        warn("log_user_prompt is false, so codex.user_prompt events are exported with prompt='[REDACTED]'", quiet)
-        warnings += 1
-    elif log_user_prompt is True:
-        ok("log_user_prompt is true, so raw prompt text is exported to logs", quiet)
-    else:
-        warn("log_user_prompt is unset", quiet)
-        warnings += 1
+    warnings += check_log_user_prompt(otel.get("log_user_prompt"), quiet)
 
     if errors:
         if not quiet:
@@ -114,9 +123,13 @@ def main() -> int:
             print("")
             print("Recommended OTEL snippet:")
             print("")
-            print(EXAMPLE_PATH.read_text(encoding="utf-8").rstrip())
+            print(f"[otel]")
+            print("log_user_prompt = false")
+            print(f"exporter = {{ otlp-grpc = {{ endpoint = {endpoint!r} }} }}")
+            print(f"trace_exporter = {{ otlp-grpc = {{ endpoint = {endpoint!r} }} }}")
+            print(f"metrics_exporter = {{ otlp-grpc = {{ endpoint = {endpoint!r} }} }}")
             print("")
-            print("After updating ~/.codex/config.toml, restart Codex from the ~/.codex project root.")
+            print("After updating ~/.codex/config.toml, restart Codex so the new OTEL settings are loaded.")
         return 1
 
     if warnings and not quiet:

@@ -8,9 +8,10 @@ import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
-COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yaml"
-PROJECT_NAME = "signoz-codex"
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from docker_runtime import compose_args, compose_environment
 
 FORMAT_PATTERN = re.compile(r"\bFORMAT\b", re.IGNORECASE)
 READONLY_USER = "codex_readonly"
@@ -39,11 +40,6 @@ WRITE_START_KEYWORDS = frozenset(
         "USE",
     }
 )
-
-
-def compose_args(*args: str) -> list[str]:
-    return ["docker", "compose", "-f", str(COMPOSE_FILE), "-p", PROJECT_NAME, *args]
-
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -357,7 +353,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.multiquery:
         command.append("--multiquery")
     command.append(f"--query={query}")
-    return subprocess.run(command, check=False).returncode
+    return subprocess.run(command, check=False, env=compose_environment()).returncode
 
 
 if __name__ == "__main__":

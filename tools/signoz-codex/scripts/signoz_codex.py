@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import socket
 import subprocess
 import sys
@@ -11,9 +12,20 @@ import urllib.request
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
-COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yaml"
-PROJECT_NAME = "signoz-codex"
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from docker_runtime import (
+    PROJECT_ROOT,
+    RuntimeConfig,
+    compose_args,
+    compose_environment,
+    docker_args,
+    resolve_runtime,
+    runtime_summary_lines,
+    stack_host,
+)
+
 REQUIRED_SERVICES = ("clickhouse", "zookeeper-1", "signoz", "otel-collector")
 CONFIG_CHECK_SCRIPT = SCRIPT_DIR / "check_codex_config.py"
 VERIFY_SCRIPT = SCRIPT_DIR / "verify_codex_telemetry.py"
@@ -37,16 +49,18 @@ def log_error(message: str) -> None:
     print(f"{RED}[ERROR]{RESET} {message}", file=sys.stderr)
 
 
-def compose_args(*args: str) -> list[str]:
-    return ["docker", "compose", "-f", str(COMPOSE_FILE), "-p", PROJECT_NAME, *args]
-
-
-def run_compose(*args: str, capture_output: bool = False, check: bool = True) -> subprocess.CompletedProcess[str]:
+def run_compose(
+    runtime: RuntimeConfig,
+    *args: str,
+    capture_output: bool = False,
+    check: bool = True,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        compose_args(*args),
+        compose_args(*args, runtime=runtime),
         check=check,
         text=True,
         capture_output=capture_output,
+        env=compose_environment(runtime=runtime),
     )
 
 
@@ -66,37 +80,104 @@ def emit_script_result(result: subprocess.CompletedProcess[str]) -> None:
         print(result.stderr, end="", file=sys.stderr)
 
 
-def check_docker() -> None:
+def check_docker(runtime: RuntimeConfig) -> None:
     try:
-        subprocess.run(["docker", "ps"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["docker", "--version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except FileNotFoundError as exc:
         raise SystemExit("Docker is not installed or not in PATH") from exc
     except subprocess.CalledProcessError as exc:
-        raise SystemExit("Docker daemon is not running or not accessible") from exc
+        raise SystemExit("Docker CLI is installed but not working correctly") from exc
+
+    context_result = subprocess.run(
+        ["docker", "context", "inspect", runtime.docker_context],
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+    if context_result.returncode != 0:
+        raise SystemExit(f"Docker context {runtime.docker_context!r} is not available")
+
+    docker_result = subprocess.run(
+        docker_args("ps", runtime=runtime),
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+    if docker_result.returncode != 0:
+        raise SystemExit(f"Docker context {runtime.docker_context!r} is not reachable")
+
+    compose_result = subprocess.run(
+        compose_args("version", runtime=runtime),
+        check=False,
+        text=True,
+        capture_output=True,
+        env=compose_environment(runtime=runtime),
+    )
+    if compose_result.returncode != 0:
+        raise SystemExit("docker compose is not available for the selected Docker context")
 
 
-def running_services() -> set[str]:
-    result = run_compose("ps", "--services", "--filter", "status=running", capture_output=True)
+def unsupported_remote_assets_message(runtime: RuntimeConfig) -> str:
+    lines = [
+        f"The active Docker context {runtime.docker_context!r} uses a remote engine ({runtime.docker_endpoint or 'unknown endpoint'}).",
+        "This stack relies on bind-mounted config files, so remote engines need an explicit asset-sync command before compose startup.",
+        "Set SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD to a local command that copies this project's runtime assets to the remote host.",
+    ]
+    if runtime.stack_host != "localhost":
+        lines.append(f"Configured stack host: {runtime.stack_host}")
+    lines.append(
+        "The remote sync command should write files into SIGNOZ_CODEX_REMOTE_ASSETS_ROOT so the compose bind mounts resolve on the remote engine."
+    )
+    return "\n".join(lines)
+
+
+def ensure_runtime_assets(runtime: RuntimeConfig, *, required: bool) -> bool:
+    if not runtime.uses_remote_docker_host:
+        return False
+    if not runtime.requires_remote_asset_sync:
+        if required:
+            raise SystemExit(unsupported_remote_assets_message(runtime))
+        return False
+
+    log_info(f"Syncing remote runtime assets into {runtime.remote_assets_root}")
+    result = subprocess.run(
+        ["/bin/sh", "-lc", runtime.remote_asset_sync_cmd],
+        check=False,
+        text=True,
+        capture_output=True,
+        env=os.environ.copy(),
+    )
+    if result.returncode != 0:
+        output = result.stderr.strip() or result.stdout.strip() or "remote asset sync command failed"
+        raise SystemExit(output)
+    return True
+
+
+def running_services(runtime: RuntimeConfig) -> set[str]:
+    result = run_compose(runtime, "ps", "--services", "--filter", "status=running", capture_output=True)
     return {line.strip() for line in result.stdout.splitlines() if line.strip()}
 
 
-def are_all_running() -> bool:
-    active = running_services()
+def are_all_running(runtime: RuntimeConfig) -> bool:
+    active = running_services(runtime)
     return all(service in active for service in REQUIRED_SERVICES)
 
 
-def show_status() -> int:
+def show_status(runtime: RuntimeConfig) -> int:
+    host = stack_host(runtime)
     log_info("SigNoz Codex stack status")
     print()
-    run_compose("ps", check=False)
+    run_compose(runtime, "ps", check=False)
     print()
-    if are_all_running():
+    if are_all_running(runtime):
         log_info("All required services are running")
     else:
         log_warn("Not all required services are running yet")
-    log_info("SigNoz UI: http://localhost:8105")
-    log_info("OTLP gRPC: localhost:5317")
-    log_info("OTLP HTTP: http://localhost:5318")
+    for line in runtime_summary_lines(runtime):
+        log_info(line)
+    log_info(f"SigNoz UI: http://{host}:8105")
+    log_info(f"OTLP gRPC: {host}:5317")
+    log_info(f"OTLP HTTP: http://{host}:5318")
     log_info(f"Primary dashboard: {PROJECT_ROOT / 'dashboards' / 'codex-native-dashboard.json'}")
     log_info("Query helper: ./scripts/signoz-codex sql-read \"SELECT 1\"")
     config_result = run_local_script(CONFIG_CHECK_SCRIPT, "--quiet")
@@ -107,7 +188,7 @@ def show_status() -> int:
     return 0
 
 
-def start_services(force: bool) -> int:
+def start_services(runtime: RuntimeConfig, force: bool) -> int:
     if not force:
         config_result = run_local_script(CONFIG_CHECK_SCRIPT)
         if config_result.stdout:
@@ -117,91 +198,105 @@ def start_services(force: bool) -> int:
         if config_result.returncode != 0:
             return config_result.returncode
 
-    if are_all_running():
+    assets_refreshed = ensure_runtime_assets(runtime, required=False)
+
+    if are_all_running(runtime):
         log_info("All services already running")
-        return show_status()
+        if assets_refreshed:
+            log_info("Remote runtime assets were refreshed before returning status")
+            log_warn("Run ./scripts/signoz-codex restart if config changes require service reload")
+        return show_status(runtime)
+
+    ensure_runtime_assets(runtime, required=True)
 
     log_info("Starting SigNoz Codex stack")
-    run_compose("up", "-d")
+    run_compose(runtime, "up", "-d")
     log_info("Waiting for core services")
     waited = 0
     while waited < 90:
-        if are_all_running():
+        if are_all_running(runtime):
             break
         print('.', end='', flush=True)
         time.sleep(2)
         waited += 2
     print()
-    return show_status()
+    return show_status(runtime)
 
 
-def stop_services() -> int:
+def stop_services(runtime: RuntimeConfig) -> int:
     log_info("Stopping SigNoz Codex stack")
-    run_compose("stop")
+    run_compose(runtime, "stop")
     return 0
 
 
-def restart_services() -> int:
+def restart_services(runtime: RuntimeConfig) -> int:
+    ensure_runtime_assets(runtime, required=False)
     log_info("Restarting SigNoz Codex stack")
-    run_compose("restart")
-    return show_status()
+    run_compose(runtime, "restart")
+    return show_status(runtime)
 
 
-def show_logs(service: str | None) -> int:
+def show_logs(runtime: RuntimeConfig, service: str | None) -> int:
     args = ["logs", "-f"]
     if service:
         args.append(service)
-    return subprocess.run(compose_args(*args), check=False).returncode
+    return subprocess.run(
+        compose_args(*args, runtime=runtime),
+        check=False,
+        env=compose_environment(runtime=runtime),
+    ).returncode
 
 
-def cleanup() -> int:
+def cleanup(runtime: RuntimeConfig) -> int:
     log_warn("This stops and removes containers but keeps volumes")
     reply = input("Continue? (y/N): ").strip()
     if reply.lower() == 'y':
-        run_compose("down")
+        run_compose(runtime, "down")
     else:
         log_info("Cancelled")
     return 0
 
 
-def purge() -> int:
+def purge(runtime: RuntimeConfig) -> int:
     log_error("This removes containers and persistent volumes")
     reply = input("Type DELETE to confirm: ").strip()
     if reply == 'DELETE':
-        run_compose("down", "-v")
+        run_compose(runtime, "down", "-v")
     else:
         log_info("Cancelled")
     return 0
 
 
-def _check_http_health() -> bool:
+def _check_http_health(runtime: RuntimeConfig) -> bool:
     try:
-        with urllib.request.urlopen("http://127.0.0.1:8105/api/v1/health", timeout=5) as response:
+        with urllib.request.urlopen(f"http://{stack_host(runtime)}:8105/api/v1/health", timeout=5) as response:
             return 200 <= response.status < 300
     except (urllib.error.URLError, TimeoutError):
         return False
 
 
-def _check_port(port: int) -> bool:
+def _check_port(runtime: RuntimeConfig, port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.settimeout(1)
-        return sock.connect_ex(("127.0.0.1", port)) == 0
+        return sock.connect_ex((stack_host(runtime), port)) == 0
 
 
-def health_check() -> int:
+def health_check(runtime: RuntimeConfig) -> int:
+    host = stack_host(runtime)
     log_info("Checking SigNoz Codex stack health")
     print()
 
     clickhouse_ok = subprocess.run(
-        compose_args("exec", "-T", "clickhouse", "clickhouse-client", "--query=SELECT 1"),
+        compose_args("exec", "-T", "clickhouse", "clickhouse-client", "--query=SELECT 1", runtime=runtime),
         check=False,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
+        env=compose_environment(runtime=runtime),
     ).returncode == 0
     print(f"  {(GREEN + '✓' + RESET) if clickhouse_ok else (RED + '✗' + RESET)} ClickHouse")
-    print(f"  {(GREEN + '✓' + RESET) if _check_http_health() else (YELLOW + '!' + RESET)} SigNoz UI")
-    print(f"  {(GREEN + '✓' + RESET) if _check_port(5317) else (YELLOW + '!' + RESET)} OTLP gRPC on :5317")
-    print(f"  {(GREEN + '✓' + RESET) if _check_port(5318) else (YELLOW + '!' + RESET)} OTLP HTTP on :5318")
+    print(f"  {(GREEN + '✓' + RESET) if _check_http_health(runtime) else (YELLOW + '!' + RESET)} SigNoz UI on {host}:8105")
+    print(f"  {(GREEN + '✓' + RESET) if _check_port(runtime, 5317) else (YELLOW + '!' + RESET)} OTLP gRPC on {host}:5317")
+    print(f"  {(GREEN + '✓' + RESET) if _check_port(runtime, 5318) else (YELLOW + '!' + RESET)} OTLP HTTP on {host}:5318")
     return 0
 
 
@@ -244,13 +339,14 @@ def build_sql_args(args: argparse.Namespace, readonly: bool = False) -> list[str
     return extra
 
 
-def config_check() -> int:
-    run_compose("config", "-q")
+def config_check(runtime: RuntimeConfig) -> int:
+    ensure_runtime_assets(runtime, required=runtime.uses_remote_docker_host)
+    run_compose(runtime, "config", "-q")
     log_info("Compose configuration is valid")
     return 0
 
 
-def doctor(minutes: int) -> int:
+def doctor(runtime: RuntimeConfig, minutes: int) -> int:
     log_info("Running Codex telemetry diagnostics")
     print("")
 
@@ -259,7 +355,7 @@ def doctor(minutes: int) -> int:
         return config_rc
 
     print("")
-    health_rc = health_check()
+    health_rc = health_check(runtime)
     if health_rc != 0:
         return health_rc
 
@@ -309,6 +405,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     command = args.command or 'start'
+    runtime = resolve_runtime()
 
     docker_commands = {
         'start',
@@ -326,36 +423,36 @@ def main(argv: list[str] | None = None) -> int:
         'purge',
     }
     if command in docker_commands:
-        check_docker()
+        check_docker(runtime)
 
     if command == 'start':
-        return start_services(args.force)
+        return start_services(runtime, args.force)
     if command == 'stop':
-        return stop_services()
+        return stop_services(runtime)
     if command == 'restart':
-        return restart_services()
+        return restart_services(runtime)
     if command == 'status':
-        return show_status()
+        return show_status(runtime)
     if command == 'logs':
-        return show_logs(args.service)
+        return show_logs(runtime, args.service)
     if command == 'check-config':
         return check_codex_config()
     if command == 'health':
-        return health_check()
+        return health_check(runtime)
     if command == 'config':
-        return config_check()
+        return config_check(runtime)
     if command == 'verify':
         return verify_telemetry(args.minutes)
     if command == 'doctor':
-        return doctor(args.minutes)
+        return doctor(runtime, args.minutes)
     if command == 'sql':
         return run_clickhouse_query(build_sql_args(args))
     if command == 'sql-read':
         return run_clickhouse_query(build_sql_args(args, readonly=True))
     if command == 'cleanup':
-        return cleanup()
+        return cleanup(runtime)
     if command == 'purge':
-        return purge()
+        return purge(runtime)
 
     parser.error(f'Unknown command: {command}')
     return 2
