@@ -25,7 +25,7 @@ Native Codex telemetry is best explored through the native dashboard plus SigNoz
    `./scripts/signoz-codex start`
 4. Print the current stack endpoints:
    `./scripts/signoz-codex status`
-5. Open the reported SigNoz UI endpoint. For local Docker and the minikube localhost-forwarding profile, that is usually `http://localhost:8105`.
+5. Open the reported SigNoz UI endpoint. For local Docker, that is usually `http://localhost:8105`.
 6. Import the primary dashboard from:
    `dashboards/codex-native-dashboard.json`
 7. Merge the example OTEL settings from:
@@ -35,7 +35,7 @@ Native Codex telemetry is best explored through the native dashboard plus SigNoz
 9. Verify native telemetry:
    `./scripts/signoz-codex verify`
 
-If the selected Docker context is a minikube-backed remote engine, rerunning `./scripts/signoz-codex start` is safe and refreshes the synced guest-side bind-mounted assets before reporting status.
+If the selected Docker context is remote and a remote asset-sync command is configured, rerunning `./scripts/signoz-codex start` is safe and refreshes the remote bind-mounted assets before reporting status.
 
 ## Ports
 
@@ -51,34 +51,70 @@ The helper uses the active Docker context by default.
 
 - Local Docker context: bind mounts stay local and the advertised stack host defaults to `localhost`
 - Remote Docker context: the helper inspects the selected context and reports the reachable stack host based on runtime settings
-- Minikube remote context: supported through a dedicated minikube asset-sync adapter, while user-facing endpoints can still stay on `localhost` if your minikube tooling forwards them there
 
 Optional runtime overrides live in:
 - `examples/runtime.env.example`
 
+The examples are templates, not auto-loaded files.
+
+- `examples/codex-otel.example.toml`: copy the `[otel]` entries you want into `~/.codex/config.toml`, then restart Codex
+- `examples/runtime.env.example`: copy it to `local/runtime.env`, uncomment the overrides you want, and let the `signoz-codex` scripts auto-load it
+
 The main controls are:
 
 - `DOCKER_CONTEXT` to choose a non-default Docker context
-- `SIGNOZ_CODEX_ENGINE_MODE=auto|local|remote|minikube`
-- `SIGNOZ_CODEX_REMOTE_ASSET_STRATEGY=auto|none|minikube-sync`
+- `SIGNOZ_CODEX_ENGINE_MODE=auto|local|remote`
+- `SIGNOZ_CODEX_REMOTE_ASSETS_ROOT` to choose where config assets live on a remote engine host
+- `SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD` to run a local sync command before remote compose startup
 - `SIGNOZ_CODEX_STACK_HOST` to override the advertised UI/OTLP host
 - `SIGNOZ_CODEX_OTLP_ENDPOINT` to override the expected Codex OTLP endpoint directly
 
-Generic remote Docker engines are supported for inspection commands, but starting the stack requires either a local engine or a supported remote asset strategy. Today the supported remote asset strategy is minikube sync.
+Generic remote Docker engines are supported for inspection commands, but starting the stack requires either a local engine or a configured remote asset-sync command because the compose file bind-mounts project config files.
 
-## Minikube Integration
+## Using The Examples
 
-Minikube can still be your central local Docker infrastructure. The helper will auto-detect common minikube-style contexts such as `minikube` or `minikube-*` and use the minikube asset-sync adapter automatically.
+### `examples/codex-otel.example.toml`
 
-If your minikube profile name is not inferable from the Docker context name, set:
+This file is a merge template for Codex telemetry settings. It is not read automatically.
 
-- `MINIKUBE_PROFILE=<profile>`
+Recommended flow:
 
-If you also keep localhost port forwarding outside this repo, the user-facing endpoints can stay on:
+```sh
+cp ~/.codex/config.toml ~/.codex/config.toml.bak
+```
 
-- `http://localhost:8105`
-- `localhost:5317`
-- `http://localhost:5318`
+Then copy the `[otel]` block you want from:
+
+- `examples/codex-otel.example.toml`
+
+into:
+
+- `~/.codex/config.toml`
+
+After saving the config, start a fresh Codex session so the new OTEL settings are loaded.
+
+### `examples/runtime.env.example`
+
+This file is a shell-env template for optional `signoz-codex` runtime overrides.
+
+Recommended flow:
+
+```sh
+mkdir -p ./local
+cp ./examples/runtime.env.example ./local/runtime.env
+```
+
+Edit `./local/runtime.env` and uncomment only the variables you need.
+
+The `signoz-codex` Python entrypoint auto-loads `local/runtime.env` if it exists, so no `.zshrc` change is required for runtime overrides.
+
+Then run:
+
+```sh
+./scripts/signoz-codex status
+```
+
+The `local/` directory is git-ignored, so this keeps personal machine-specific overrides out of Git while making the example file genuinely usable.
 
 ## Helper Commands
 
@@ -162,6 +198,12 @@ The recommended local setup uses a `zsh` hook that resolves project identity fro
 - use the nearest Git repo root and basename when `git rev-parse --show-toplevel` succeeds
 - otherwise fall back to the nearest matching path in `~/.codex/config.toml` under `[projects]`
 - keep launching plain `codex`; no Codex wrapper is required
+
+Why this belongs in `~/.zshrc`:
+
+- it updates `OTEL_RESOURCE_ATTRIBUTES` for every new interactive shell and every directory change
+- it lets plain `codex` inherit the correct `project.name`, `project.path`, and `vcs.repository.name`
+- without it, native telemetry still works, but project dimensions may be missing or stale when you move between repos
 
 Add a line like this to `~/.zshrc` after replacing `/path/to/signoz-codex` with the clone or install location of this project:
 

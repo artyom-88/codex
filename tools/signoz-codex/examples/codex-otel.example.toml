@@ -1,7 +1,8 @@
 # Codex OpenTelemetry settings for the local SigNoz Codex stack.
-# Merge the safe parts you want into ~/.codex/config.toml.
-# These endpoints point to the advertised SigNoz stack host. For local Docker and
-# minikube setups with localhost forwarding, they usually stay on localhost.
+# This file is a merge template. It is not auto-loaded.
+# Copy the [otel] entries you want into ~/.codex/config.toml, then restart Codex.
+# These endpoints point to the advertised SigNoz stack host. For local Docker
+# setups, they usually stay on localhost.
 # With log_user_prompt = false, codex.user_prompt events still exist but the prompt value is redacted.
 # Set it to true only if you explicitly want raw prompt text in SigNoz logs.
 # Project metadata is expected to come from OTEL_RESOURCE_ATTRIBUTES in your shell,

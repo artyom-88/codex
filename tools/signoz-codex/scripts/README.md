@@ -7,8 +7,12 @@ Use `./scripts/signoz-codex` as the stable entry point from the project root.
 - `signoz-codex`: thin wrapper that execs `signoz_codex.py`
 - `signoz_codex.py`: main command dispatcher for stack lifecycle, health checks, and SQL access
 - `query_clickhouse.py`: low-level ClickHouse query runner used by `sql` and `sql-read`
-- `check_codex_config.py`: validates `~/.codex/config.toml` for the local OTEL setup
+- `check_codex_config.py`: validates `~/.codex/config.toml` for the selected stack host and OTLP endpoint
 - `verify_codex_telemetry.py`: checks recent native Codex telemetry in SigNoz
+- `project_resource_attrs.py`: resolves Git-or-Codex-project metadata and merges it into `OTEL_RESOURCE_ATTRIBUTES` for shell hooks
+- `project_resource_attrs_hook.zsh`: lightweight `zsh` hook that calls `project_resource_attrs.py` on startup and directory changes
+
+The scripts use the active Docker context by default. Local contexts run directly from the repo checkout. Remote contexts are supported too, but stack startup needs a remote asset-sync command because the compose file bind-mounts project config files.
 
 ## SQL modes
 
@@ -24,6 +28,48 @@ cat ./query.sql | ./scripts/signoz-codex sql-read
 ./scripts/signoz-codex sql "OPTIMIZE TABLE signoz_logs.distributed_logs_v2 FINAL"
 ```
 
-## Approval model
+## Runtime overrides
 
-The private rules in `~/.codex/rules/default.rules` are meant to allow direct `sql-read` and prompt for direct `sql` calls. Those rules target the real script paths, not a shell alias, so Codex can match them without relying on `zsh -ic`.
+Optional runtime env vars:
+
+- `DOCKER_CONTEXT` to select a non-default Docker context
+- `SIGNOZ_CODEX_ENGINE_MODE=auto|local|remote`
+- `SIGNOZ_CODEX_REMOTE_ASSETS_ROOT` to choose the target asset directory on the remote engine host
+- `SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD` to run a local sync command before remote compose startup
+- `SIGNOZ_CODEX_STACK_HOST` to override the advertised UI and OTLP host
+- `SIGNOZ_CODEX_OTLP_ENDPOINT` to override the expected Codex OTLP endpoint directly
+
+Recommended activation flow:
+
+1. Copy `examples/runtime.env.example` to `local/runtime.env`
+2. Uncomment only the variables you need
+3. Run `./scripts/signoz-codex ...`
+
+Example:
+
+```sh
+mkdir -p ./local
+cp ./examples/runtime.env.example ./local/runtime.env
+```
+
+The example env file is documentation plus a reusable template. The `signoz-codex` Python entrypoint auto-loads `local/runtime.env` if it exists, and `local/` is git-ignored.
+
+## Native project metadata
+
+The recommended native setup is a small `zsh` hook that calls `project_resource_attrs.py` on shell startup and directory changes. The hook keeps plain `codex` usage intact while making these resource attributes available to native metrics, traces, and logs:
+
+- `project.name`
+- `project.path`
+- `vcs.repository.name` when the current directory is inside a Git repo
+
+Why it belongs in `~/.zshrc`:
+
+- the hook runs once when the shell starts and again whenever `PWD` changes
+- that keeps `OTEL_RESOURCE_ATTRIBUTES` aligned with the repo you are actually working in
+- without it, `codex` still works, but project-aware dimensions in SigNoz may be missing or stale
+
+Suggested minimal `~/.zshrc` line after replacing `/path/to/signoz-codex` with your actual checkout path:
+
+```zsh
+[[ -f "/path/to/signoz-codex/scripts/project_resource_attrs_hook.zsh" ]] && source "/path/to/signoz-codex/scripts/project_resource_attrs_hook.zsh"
+```
