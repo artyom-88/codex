@@ -6,6 +6,7 @@ This file tracks project-specific instruction sets for this repository. These sh
 
 These live under `.codex/instructions/workflow/` and are for project-specific workflow guidance.
 
+- [python-ci-parity.md](workflow/python-ci-parity.md): Repo-local Python CI parity guidance for tracked `.py` changes and `Python Quality` / `Python Security` failures. (Load only when Python files or Python CI are involved.)
 - [sharing.md](workflow/sharing.md): Guidance for changing the tracked public surface of this repository. (Load only when the task involves sharing or publishing repo content.)
 
 ## Tools

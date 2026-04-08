@@ -25,6 +25,8 @@ Use this skill when the user asks to:
 
 - Start the lifecycle log immediately after invocation:
   - `python3 scripts/write_reflection_log.py --cwd "$PWD" start --user-request-summary "<short summary>"`
+- Prefer passing structured lifecycle payloads to `write_reflection_log.py` over stdin with `--input -`.
+- If stdin is impractical and a temporary JSON payload file is needed for `event` or `finalize`, write it under `~/.codex/cache/memory-refiner/tmp/`, not under repo-local `.codex/plans/` or other durable artifact directories.
 - Use the current conversation as the highest-signal short-term evidence.
 - Treat interruption or abort notices in the current conversation (for example `Conversation interrupted` or `turn_aborted`) as workflow signals, even if they do not appear in `history.jsonl`.
 - Run `python3 scripts/scan_history.py --format markdown` to summarize `~/.codex/history.jsonl`.
@@ -90,6 +92,7 @@ Do not apply changes until the user approves the specific items.
 - Record recommendation outcomes using statuses such as `proposed`, `approved`, `applied`, `rejected`, or `deferred`.
 - Run `python3 scripts/suggest_log_cleanup.py --cwd "$PWD" --format markdown` and include any meaningful stale-log suggestions in the final response when relevant.
 - When the stale-log suggestions should be applied immediately, run `python3 scripts/suggest_log_cleanup.py --cwd "$PWD" --apply --format markdown`.
+- Remove any temporary payload files created under `~/.codex/cache/memory-refiner/tmp/` after the corresponding `event` or `finalize` command succeeds, and make sure the run finishes without leaving those cache files behind.
 - Use prior reflection logs to suppress stale advice, highlight repeated successful recommendations, and call out repeated rejected suggestions only when that history materially improves the recommendation quality.
 - This logging is skill-driven, not a separate hidden Codex hook, so the lifecycle logger must be called explicitly as part of the workflow.
 

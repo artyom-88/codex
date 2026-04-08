@@ -9,6 +9,7 @@
 ## Tool Guidance
 
 - `.codex/instructions/tools/signoz.md` contains SigNoz stack workflow guidance for `tools/signoz-codex/` plus shared SigNoz conventions. Load only when working on SigNoz-related tooling.
+- `.codex/instructions/workflow/python-ci-parity.md` contains repo-local Python CI parity guidance. Load only when changing tracked `.py` files in this repo or debugging `Python Quality` / `Python Security` failures.
 - `.codex/instructions/workflow/sharing.md` contains repo publishing workflow and public/private boundary guidance. Load only when changing tracked shareable content, allowlists, or GitHub-facing docs.
 
 ## Shareable Local Skills
