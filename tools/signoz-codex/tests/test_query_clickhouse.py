@@ -75,37 +75,27 @@ class QueryClickhouseTests(unittest.TestCase):
             MODULE.validate_readonly_query("SELECT 1; DROP TABLE t")
         self.assertIn("DROP TABLE t", str(error.exception))
 
-    def test_main_uses_readonly_credentials_for_sql_read(self) -> None:
+    def test_main_uses_readonly_clickhouse_client_args(self) -> None:
         with (
-            mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]),
+            mock.patch.object(MODULE, "clickhouse_client_args", return_value=["docker", "compose"]) as client_args,
             mock.patch.object(MODULE, "compose_environment", return_value={}),
-            mock.patch.object(MODULE, "clickhouse_credentials", return_value=CredentialsStub()),
             mock.patch.object(MODULE.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run,
         ):
             self.assertEqual(MODULE.main(["--readonly", "SELECT 1"]), 0)
 
-        command = run.call_args.args[0]
-        readonly_flag = "--password=" + CredentialsStub().readonly_password
-        write_flag = "--password=" + CredentialsStub().write_password
-        self.assertIn("--user=codex_readonly", command)
-        self.assertIn(readonly_flag, command)
-        self.assertNotIn(write_flag, command)
+        client_args.assert_called_once_with(readonly=True)
+        self.assertEqual(run.call_args.args[0], ["docker", "compose", "--query=SELECT 1"])
 
-    def test_main_uses_write_credentials_for_sql(self) -> None:
+    def test_main_uses_write_clickhouse_client_args_for_sql(self) -> None:
         with (
-            mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]),
+            mock.patch.object(MODULE, "clickhouse_client_args", return_value=["docker", "compose"]) as client_args,
             mock.patch.object(MODULE, "compose_environment", return_value={}),
-            mock.patch.object(MODULE, "clickhouse_credentials", return_value=CredentialsStub()),
             mock.patch.object(MODULE.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run,
         ):
             self.assertEqual(MODULE.main(["SELECT 1"]), 0)
 
-        command = run.call_args.args[0]
-        write_flag = "--password=" + CredentialsStub().write_password
-        readonly_flag = "--password=" + CredentialsStub().readonly_password
-        self.assertIn("--user=default", command)
-        self.assertIn(write_flag, command)
-        self.assertNotIn(readonly_flag, command)
+        client_args.assert_called_once_with(readonly=False)
+        self.assertEqual(run.call_args.args[0], ["docker", "compose", "--query=SELECT 1"])
 
 
 if __name__ == "__main__":

@@ -3,19 +3,11 @@ from __future__ import annotations
 import contextlib
 import io
 import unittest
-from types import SimpleNamespace
 from unittest import mock
 
 from test_support import load_script_module
 
 MODULE = load_script_module("verify_codex_telemetry", "verify_codex_telemetry.py")
-WRITE_PASSWORD_ATTR = "write_" + "password"
-
-
-def build_write_credentials() -> SimpleNamespace:
-    credentials = SimpleNamespace(write_user="default")
-    setattr(credentials, WRITE_PASSWORD_ATTR, "fixture-" + "token")
-    return credentials
 
 
 class VerifyCodexTelemetryTests(unittest.TestCase):
@@ -38,26 +30,12 @@ class VerifyCodexTelemetryTests(unittest.TestCase):
         self.assertEqual(MODULE.parse_count(["42"]), 42)
 
     def test_query_clickhouse_uses_authenticated_client(self) -> None:
-        credentials = build_write_credentials()
         with (
-            mock.patch.object(
-                MODULE,
-                "clickhouse_credentials",
-                return_value=credentials,
-            ),
-            mock.patch.object(MODULE, "run_compose", return_value=SimpleNamespace(stdout="1\n")) as run_compose,
+            mock.patch.object(MODULE, "run_clickhouse_client", return_value=mock.Mock(stdout="1\n")) as run_client,
         ):
             self.assertEqual(MODULE.query_clickhouse("SELECT 1"), ["1"])
 
-        run_compose.assert_called_once_with(
-            "exec",
-            "-T",
-            "clickhouse",
-            "clickhouse-client",
-            "--user=default",
-            f"--password={getattr(credentials, WRITE_PASSWORD_ATTR)}",
-            "--query=SELECT 1",
-        )
+        run_client.assert_called_once_with("--query=SELECT 1")
 
     def test_compose_failure_message_handles_stopped_stack(self) -> None:
         error = MODULE.subprocess.CalledProcessError(

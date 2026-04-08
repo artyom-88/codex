@@ -175,6 +175,30 @@ def clickhouse_credentials() -> ClickHouseCredentials:
     )
 
 
+def clickhouse_client_args(
+    *client_args: str,
+    runtime: RuntimeConfig | None = None,
+    readonly: bool = False,
+) -> list[str]:
+    credentials = clickhouse_credentials()
+    if readonly:
+        user = credentials.readonly_user
+        credential_value = credentials.readonly_password
+    else:
+        user = credentials.write_user
+        credential_value = credentials.write_password
+    return compose_args(
+        "exec",
+        "-T",
+        "clickhouse",
+        "clickhouse-client",
+        f"--user={user}",
+        f"--password={credential_value}",
+        *client_args,
+        runtime=runtime,
+    )
+
+
 def _generated_password() -> str:
     return secrets.token_hex(24)
 

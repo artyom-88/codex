@@ -6,7 +6,7 @@ import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
-from docker_runtime import clickhouse_credentials, compose_args, compose_environment
+from docker_runtime import clickhouse_client_args, compose_environment
 
 READ_ONLY_START_KEYWORDS = frozenset({"SELECT", "SHOW", "DESCRIBE", "DESC", "EXPLAIN", "EXISTS"})
 WRITE_START_KEYWORDS = frozenset(
@@ -353,23 +353,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.readonly:
         validate_readonly_query(query)
     query = apply_output_format(query, args.format)
-    credentials = clickhouse_credentials()
-
-    command = compose_args("exec", "-T", "clickhouse", "clickhouse-client")
-    if args.readonly:
-        command.extend(
-            [
-                f"--user={credentials.readonly_user}",
-                f"--password={credentials.readonly_password}",
-            ]
-        )
-    else:
-        command.extend(
-            [
-                f"--user={credentials.write_user}",
-                f"--password={credentials.write_password}",
-            ]
-        )
+    command = clickhouse_client_args(readonly=args.readonly)
     if args.multiquery:
         command.append("--multiquery")
     command.append(f"--query={query}")

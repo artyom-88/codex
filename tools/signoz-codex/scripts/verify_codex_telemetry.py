@@ -6,7 +6,7 @@ import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
-from docker_runtime import clickhouse_credentials, compose_args, compose_environment
+from docker_runtime import clickhouse_client_args, compose_environment
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 GREEN = "\033[0;32m"
@@ -35,9 +35,9 @@ def compose_failure_message(process_error: subprocess.CalledProcessError) -> str
     )
 
 
-def run_compose(*args: str) -> subprocess.CompletedProcess[str]:
+def run_clickhouse_client(*args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        compose_args(*args),
+        clickhouse_client_args(*args),
         check=True,
         text=True,
         capture_output=True,
@@ -46,16 +46,7 @@ def run_compose(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def query_clickhouse(sql: str) -> list[str]:
-    credentials = clickhouse_credentials()
-    result = run_compose(
-        "exec",
-        "-T",
-        "clickhouse",
-        "clickhouse-client",
-        f"--user={credentials.write_user}",
-        f"--password={credentials.write_password}",
-        f"--query={sql}",
-    )
+    result = run_clickhouse_client(f"--query={sql}")
     return [line for line in result.stdout.splitlines() if line.strip()]
 
 

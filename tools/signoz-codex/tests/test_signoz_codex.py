@@ -9,52 +9,30 @@ from unittest import mock
 from test_support import load_script_module
 
 MODULE = load_script_module("signoz_codex", "signoz_codex.py")
-WRITE_PASSWORD_ATTR = "write_" + "password"
-
-
-def build_write_credentials() -> SimpleNamespace:
-    credentials = SimpleNamespace(write_user="default")
-    setattr(credentials, WRITE_PASSWORD_ATTR, "fixture-" + "token")
-    return credentials
 
 
 class SignozCodexTests(unittest.TestCase):
     def test_health_check_returns_zero_when_all_probes_pass(self) -> None:
         runtime = SimpleNamespace()
-        credentials = build_write_credentials()
         with (
             contextlib.redirect_stdout(io.StringIO()),
             mock.patch.object(MODULE, "stack_host", return_value="localhost"),
-            mock.patch.object(MODULE, "clickhouse_credentials", return_value=credentials),
-            mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]) as compose_args,
+            mock.patch.object(MODULE, "clickhouse_client_args", return_value=["docker", "compose"]) as client_args,
             mock.patch.object(MODULE, "compose_environment", return_value={}),
-            mock.patch.object(MODULE.subprocess, "run", return_value=SimpleNamespace(returncode=0)),
+            mock.patch.object(MODULE.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run,
             mock.patch.object(MODULE, "_check_http_health", return_value=True),
             mock.patch.object(MODULE, "_check_port", side_effect=[True, True]),
         ):
             self.assertEqual(MODULE.health_check(runtime), 0)
-        compose_args.assert_called_once_with(
-            "exec",
-            "-T",
-            "clickhouse",
-            "clickhouse-client",
-            f"--user={credentials.write_user}",
-            f"--password={getattr(credentials, WRITE_PASSWORD_ATTR)}",
-            "--query=SELECT 1",
-            runtime=runtime,
-        )
+        client_args.assert_called_once_with("--query=SELECT 1", runtime=runtime)
+        self.assertEqual(run.call_args.args[0], ["docker", "compose"])
 
     def test_health_check_returns_nonzero_when_any_probe_fails(self) -> None:
         runtime = SimpleNamespace()
         with (
             contextlib.redirect_stdout(io.StringIO()),
             mock.patch.object(MODULE, "stack_host", return_value="localhost"),
-            mock.patch.object(
-                MODULE,
-                "clickhouse_credentials",
-                return_value=build_write_credentials(),
-            ),
-            mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]),
+            mock.patch.object(MODULE, "clickhouse_client_args", return_value=["docker", "compose"]),
             mock.patch.object(MODULE, "compose_environment", return_value={}),
             mock.patch.object(MODULE.subprocess, "run", return_value=SimpleNamespace(returncode=0)),
             mock.patch.object(MODULE, "_check_http_health", return_value=False),
