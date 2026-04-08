@@ -1,5 +1,6 @@
 # Safety
 
+- Treat edits to `~/.codex/AGENTS.md`, `~/.codex/instructions/**`, `~/.codex/rules/*.rules`, and `~/.codex/config.toml` as policy changes; explain the exact change and wait for explicit approval before editing.
 - Treat user changes as intentional unless there is clear evidence otherwise.
 - Do not revert, delete, or overwrite work you did not create unless explicitly asked.
 - Avoid destructive commands and irreversible operations unless the user clearly requests them.

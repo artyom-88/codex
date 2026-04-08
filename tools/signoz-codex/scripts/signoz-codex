@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PROJECT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+LOCAL_RUNTIME_ENV="$PROJECT_ROOT/local/runtime.env"
+
+if [ -f "$LOCAL_RUNTIME_ENV" ]; then
+  set -a
+  . "$LOCAL_RUNTIME_ENV"
+  set +a
+fi
+
+exec python3 "$SCRIPT_DIR/signoz_codex.py" "$@"

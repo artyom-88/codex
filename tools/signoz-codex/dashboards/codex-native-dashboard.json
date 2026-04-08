@@ -1,0 +1,2914 @@
+{
+  "description": "Primary dashboard for native Codex OpenTelemetry metrics emitted by codex_cli_rs, including project-aware progress, responsiveness, and friction signals.",
+  "image": "",
+  "layout": [
+    {
+      "h": 2,
+      "i": "tool-calls-total",
+      "moved": false,
+      "static": false,
+      "w": 2,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "h": 2,
+      "i": "approval-requests-total",
+      "moved": false,
+      "static": false,
+      "w": 2,
+      "x": 2,
+      "y": 0
+    },
+    {
+      "h": 2,
+      "i": "approval-request-ratio-total",
+      "moved": false,
+      "static": false,
+      "w": 2,
+      "x": 4,
+      "y": 0
+    },
+    {
+      "i": "tool-success-rate-total",
+      "moved": false,
+      "static": false,
+      "x": 6,
+      "y": 0,
+      "w": 2,
+      "h": 2
+    },
+    {
+      "h": 2,
+      "i": "tokens-total",
+      "moved": false,
+      "static": false,
+      "w": 2,
+      "x": 8,
+      "y": 0
+    },
+    {
+      "h": 2,
+      "i": "websocket-events-total",
+      "moved": false,
+      "static": false,
+      "w": 2,
+      "x": 10,
+      "y": 0
+    },
+    {
+      "h": 1,
+      "i": "row-progress",
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 2
+    },
+    {
+      "h": 5,
+      "i": "conversation-turns-over-time",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 3
+    },
+    {
+      "h": 5,
+      "i": "threads-started-by-project",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 3
+    },
+    {
+      "h": 1,
+      "i": "row-project-focus",
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 8
+    },
+    {
+      "h": 5,
+      "i": "turns-by-project",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 9
+    },
+    {
+      "h": 5,
+      "i": "tokens-by-project",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "h": 5,
+      "i": "tool-calls-by-project",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 14
+    },
+    {
+      "h": 5,
+      "i": "approvals-by-project",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 14
+    },
+    {
+      "h": 1,
+      "i": "row-responsiveness",
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 19
+    },
+    {
+      "h": 5,
+      "i": "avg-turn-latency-over-time",
+      "moved": false,
+      "static": false,
+      "w": 4,
+      "x": 0,
+      "y": 20
+    },
+    {
+      "h": 5,
+      "i": "avg-ttft-over-time",
+      "moved": false,
+      "static": false,
+      "w": 4,
+      "x": 4,
+      "y": 20
+    },
+    {
+      "h": 5,
+      "i": "avg-ttfm-over-time",
+      "moved": false,
+      "static": false,
+      "w": 4,
+      "x": 8,
+      "y": 20
+    },
+    {
+      "h": 5,
+      "i": "api-requests-by-status",
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 25
+    },
+    {
+      "h": 1,
+      "i": "row-friction-health",
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 30
+    },
+    {
+      "h": 5,
+      "i": "mcp-calls-by-tool",
+      "moved": false,
+      "static": false,
+      "w": 3,
+      "x": 0,
+      "y": 31
+    },
+    {
+      "i": "tool-failures-by-tool",
+      "moved": false,
+      "static": false,
+      "x": 3,
+      "y": 31,
+      "w": 3,
+      "h": 5
+    },
+    {
+      "h": 5,
+      "i": "approval-request-ratio",
+      "moved": false,
+      "static": false,
+      "w": 3,
+      "x": 6,
+      "y": 31
+    },
+    {
+      "h": 5,
+      "i": "project-context-health",
+      "moved": false,
+      "static": false,
+      "w": 3,
+      "x": 9,
+      "y": 31
+    },
+    {
+      "h": 6,
+      "i": "tool-calls-over-time",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 36
+    },
+    {
+      "h": 6,
+      "i": "token-usage-over-time",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 36
+    },
+    {
+      "h": 6,
+      "i": "tool-calls-by-tool",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 42
+    },
+    {
+      "h": 6,
+      "i": "tokens-by-type",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 42
+    },
+    {
+      "h": 6,
+      "i": "approval-outcomes",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 48
+    },
+    {
+      "h": 6,
+      "i": "websocket-events-by-kind",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 48
+    }
+  ],
+  "panelMap": {},
+  "tags": [
+    "codex",
+    "native",
+    "otel",
+    "telemetry",
+    "project"
+  ],
+  "title": "Codex Native Telemetry Dashboard",
+  "uploadedGrafana": false,
+  "uuid": "0195cd31-4e4a-7f5f-a001-5d8cbf960002",
+  "variables": {},
+  "version": "v5",
+  "widgets": [
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 0,
+      "description": "Count of tool invocations made by Codex in the selected time range. A tool is an action Codex asks the host environment to perform, such as exec_command, write_stdin, apply_patch, request_user_input, or an MCP tool; this does not mean launching Codex itself.",
+      "fillSpans": false,
+      "id": "tool-calls-total",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.tool.call",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Tool calls",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960011",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "index": "0195cd31-4e4a-7f5f-a001-5d8cbf960111",
+          "isEditEnabled": false,
+          "keyIndex": 0,
+          "selectedGraph": "value",
+          "thresholdColor": "Green",
+          "thresholdFormat": "Text",
+          "thresholdLabel": "",
+          "thresholdOperator": ">",
+          "thresholdTableOptions": "A",
+          "thresholdUnit": "none",
+          "thresholdValue": 0
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Total Tool Calls",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 0,
+      "description": "Count of permission prompts Codex created before running a tool or command that required approval. This measures human-intervention friction, not whether Codex accepted a code suggestion.",
+      "fillSpans": false,
+      "id": "approval-requests-total",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.approval.requested",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Approval requests",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960012",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "index": "0195cd31-4e4a-7f5f-a001-5d8cbf960112",
+          "isEditEnabled": false,
+          "keyIndex": 0,
+          "selectedGraph": "value",
+          "thresholdColor": "Blue",
+          "thresholdFormat": "Text",
+          "thresholdLabel": "",
+          "thresholdOperator": ">",
+          "thresholdTableOptions": "A",
+          "thresholdUnit": "none",
+          "thresholdValue": 0
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Approval Requests",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 0,
+      "description": "Total model token usage reported by Codex turns in the selected time range, including input, cached input, output, reasoning output, and total token_type series where present.",
+      "fillSpans": false,
+      "id": "tokens-total",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.token_usage.sum",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "token_type = 'total' "
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Tokens",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960013",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "index": "0195cd31-4e4a-7f5f-a001-5d8cbf960113",
+          "isEditEnabled": false,
+          "keyIndex": 0,
+          "selectedGraph": "value",
+          "thresholdColor": "Orange",
+          "thresholdFormat": "Text",
+          "thresholdLabel": "",
+          "thresholdOperator": ">",
+          "thresholdTableOptions": "A",
+          "thresholdUnit": "none",
+          "thresholdValue": 0
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Total Tokens",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 0,
+      "description": "Count of low-level Codex client/server websocket events observed in the selected time range. This is protocol activity volume, not user-visible task progress.",
+      "fillSpans": false,
+      "id": "websocket-events-total",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.websocket.event",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Events",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960014",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "index": "0195cd31-4e4a-7f5f-a001-5d8cbf960114",
+          "isEditEnabled": false,
+          "keyIndex": 0,
+          "selectedGraph": "value",
+          "thresholdColor": "Pink",
+          "thresholdFormat": "Text",
+          "thresholdLabel": "",
+          "thresholdOperator": ">",
+          "thresholdTableOptions": "A",
+          "thresholdUnit": "none",
+          "thresholdValue": 0
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Websocket Events",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {
+        "approved": "#7ee97a",
+        "approved_with_amendment": "#ffb703",
+        "denied": "#d43f21",
+        "rejected": "#e65a24"
+      },
+      "decimalPrecision": 2,
+      "description": "Time series of Codex tool invocations grouped by tool name. Tool names identify host actions Codex used, such as exec_command, write_stdin, apply_patch, request_user_input, or MCP tool calls.",
+      "fillSpans": true,
+      "id": "tool-calls-over-time",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.tool.call",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "tool--string--tag",
+                  "key": "tool",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{tool}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960015",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Tool Calls Over Time",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {
+        "codex.rate_limits": "#ff9f1c",
+        "response.completed": "#adb5bd",
+        "response.content_part.added": "#4cc9f0",
+        "response.content_part.done": "#2a9d8f",
+        "response.created": "#4361ee",
+        "response.custom_tool_call_input.delta": "#ff6b6b",
+        "response.function_call_arguments.delta": "#8ac926",
+        "response.function_call_arguments.done": "#52b788",
+        "response.in_progress": "#b5179e",
+        "response.output_item.added": "#7b61ff",
+        "response.output_item.done": "#5a189a",
+        "response.output_text.delta": "#f28482",
+        "response.output_text.done": "#e63946"
+      },
+      "decimalPrecision": 2,
+      "description": "Time series of model tokens consumed by Codex turns, grouped by token_type. Token types include input, cached_input, output, reasoning_output, and total when emitted.",
+      "fillSpans": true,
+      "id": "token-usage-over-time",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.token_usage.sum",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "token_type--string--tag",
+                  "key": "token_type",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{token_type}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960016",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Token Usage Over Time",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {
+        "apply_patch": "#ffd166",
+        "click": "#3a86ff",
+        "exec_command": "#4cc9f0",
+        "find": "#8338ec",
+        "image_query": "#f77f00",
+        "open": "#4895ef",
+        "read_mcp_resource": "#2a9d8f",
+        "request_user_input": "#90be6d",
+        "search_query": "#00b4d8",
+        "send_input": "#f72585",
+        "spawn_agent": "#e76f51",
+        "screenshot": "#ff006e",
+        "time": "#43aa8b",
+        "update_plan": "#f4a261",
+        "wait_agent": "#6c5ce7",
+        "weather": "#577590",
+        "write_stdin": "#7b61ff"
+      },
+      "decimalPrecision": 2,
+      "description": "Distribution of Codex tool invocations by tool name over the selected time range. This shows which host capabilities Codex used most often, not which Codex model was used.",
+      "fillSpans": true,
+      "id": "tool-calls-by-tool",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.tool.call",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "tool--string--tag-bar",
+                  "key": "tool",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{tool}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960017",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Tool Calls By Tool",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {
+        "cached_input": "#f28b82",
+        "input": "#4285f4",
+        "output": "#34a853",
+        "reasoning_output": "#db4437",
+        "total": "#f4b400"
+      },
+      "decimalPrecision": 2,
+      "description": "Distribution of token usage by token_type over the selected time range. Use this to compare prompt/context tokens, cached input, generated output, and reasoning output.",
+      "fillSpans": true,
+      "id": "tokens-by-type",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.token_usage.sum",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "token_type--string--tag-bar",
+                  "key": "token_type",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{token_type}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960018",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Tokens By Type",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {
+        "approved": "#7ee97a",
+        "approved_with_amendment": "#ffb703",
+        "denied": "#d43f21",
+        "rejected": "#e65a24"
+      },
+      "decimalPrecision": 2,
+      "description": "Distribution of approval prompts by result, such as approved, approved_with_amendment, approved_for_session, or denied when present. This shows how often Codex needed and received permission to continue.",
+      "fillSpans": true,
+      "id": "approval-outcomes",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.approval.requested",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "approved--string--tag",
+                  "key": "approved",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{approved}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960019",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Approval Outcomes",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {
+        "codex.rate_limits": "#ff9f1c",
+        "response.completed": "#adb5bd",
+        "response.content_part.added": "#4cc9f0",
+        "response.content_part.done": "#2a9d8f",
+        "response.created": "#4361ee",
+        "response.custom_tool_call_input.delta": "#ff6b6b",
+        "response.function_call_arguments.delta": "#8ac926",
+        "response.function_call_arguments.done": "#52b788",
+        "response.in_progress": "#b5179e",
+        "response.output_item.added": "#7b61ff",
+        "response.output_item.done": "#5a189a",
+        "response.output_text.delta": "#f28482",
+        "response.output_text.done": "#e63946"
+      },
+      "decimalPrecision": 2,
+      "description": "Distribution of low-level websocket event kinds emitted by Codex. This is mainly useful for protocol/debug inspection; high counts do not necessarily mean more productive work.",
+      "fillSpans": true,
+      "id": "websocket-events-by-kind",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.websocket.event",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "kind--string--tag",
+                  "key": "kind",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{kind}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "0195cd31-4e4a-7f5f-a001-5d8cbf960020",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Websocket Events By Kind",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Global percentage for the selected time range: approval requests divided by total Codex tool invocations, multiplied by 100. This summarizes how often Codex needed human permission before it could use a host tool.",
+      "fillSpans": false,
+      "id": "approval-request-ratio-total",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.approval.requested",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Approval requests",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.tool.call",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "B",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Tool calls",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "B",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": [
+            {
+              "color": "#ffb703",
+              "disabled": false,
+              "expression": "A / B * 100",
+              "legend": "Approval request ratio %",
+              "queryName": "F1"
+            }
+          ]
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-approval-request-ratio-total",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Approval Request Ratio",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Global percentage for the selected time range: successful Codex tool invocations divided by all Codex tool invocations, multiplied by 100. This measures whether Codex host actions completed successfully; it does not prove the overall user task succeeded.",
+      "fillSpans": false,
+      "id": "tool-success-rate-total",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.tool.call",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "success = 'true'"
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Successful tool calls",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.tool.call",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "B",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "All tool calls",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "B",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": [
+            {
+              "color": "#34a853",
+              "disabled": false,
+              "expression": "A / B * 100",
+              "legend": "Tool success rate %",
+              "queryName": "F1"
+            }
+          ]
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-tool-success-rate-total",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Tool Success Rate",
+      "yAxisUnit": "none"
+    },
+    {
+      "id": "row-progress",
+      "panelTypes": "row",
+      "query": {},
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Progress"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Time series of Codex conversation turns. A turn is one user request/assistant response cycle tracked by Codex telemetry, so this is a better progress signal than raw websocket event volume.",
+      "fillSpans": true,
+      "id": "conversation-turns-over-time",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.conversation.turn.count",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Turns",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-conversation-turns-over-time",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Conversation Turns Over Time",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Count of Codex threads or sessions started, grouped by project.name. Project name comes from OTEL_RESOURCE_ATTRIBUTES captured when Codex starts; the dashboard still shows all projects by default.",
+      "fillSpans": true,
+      "id": "threads-started-by-project",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.thread.started",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "project.name--string--tag",
+                  "key": "project.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{project.name}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-threads-started-by-project",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Threads Started By Project",
+      "yAxisUnit": "none"
+    },
+    {
+      "id": "row-project-focus",
+      "panelTypes": "row",
+      "query": {},
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Project Focus"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Conversation turns grouped by project.name. This shows where Codex effort was spent across repositories or configured projects during the selected time range.",
+      "fillSpans": true,
+      "id": "turns-by-project",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.conversation.turn.count",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "project.name--string--tag",
+                  "key": "project.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{project.name}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-turns-by-project",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Turns By Project",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Token usage grouped by project.name and token_type. Use this to see which project consumed model context/output/reasoning tokens, while remembering project context is captured from the Codex process environment.",
+      "fillSpans": true,
+      "id": "tokens-by-project",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.token_usage.sum",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "project.name--string--tag",
+                  "key": "project.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "token_type--string--tag",
+                  "key": "token_type",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{project.name}} {{token_type}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-tokens-by-project",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Tokens By Project",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Codex tool invocations grouped by project.name and tool. This shows which projects required more host actions such as shell commands, patches, stdin writes, approval prompts, or MCP calls.",
+      "fillSpans": true,
+      "id": "tool-calls-by-project",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.tool.call",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "project.name--string--tag",
+                  "key": "project.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "tool--string--tag",
+                  "key": "tool",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{project.name}} {{tool}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-tool-calls-by-project",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Tool Calls By Project",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Permission prompts grouped by project.name and approval outcome. This highlights which projects or tasks required more human approval before Codex could run tools.",
+      "fillSpans": true,
+      "id": "approvals-by-project",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.approval.requested",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "project.name--string--tag",
+                  "key": "project.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "approved--string--tag",
+                  "key": "approved",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{project.name}} {{approved}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-approvals-by-project",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Approvals By Project",
+      "yAxisUnit": "none"
+    },
+    {
+      "id": "row-responsiveness",
+      "panelTypes": "row",
+      "query": {},
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Responsiveness"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Average end-to-end turn duration in milliseconds, calculated from codex.turn.e2e_duration_ms sum divided by count. This approximates how long a full Codex turn took from request to completion.",
+      "fillSpans": true,
+      "id": "avg-turn-latency-over-time",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.e2e_duration_ms.sum",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Avg turn latency ms sum",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.e2e_duration_ms.count",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "B",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Avg turn latency ms count",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "B",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": [
+            {
+              "color": "#34a853",
+              "disabled": false,
+              "expression": "A / B",
+              "legend": "Avg turn latency ms",
+              "queryName": "F1"
+            }
+          ]
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-avg-turn-latency-over-time",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Average Turn Latency Over Time",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Average time to first token in milliseconds, calculated from codex.turn.ttft.duration_ms sum divided by count. This measures how long it took before Codex began producing a response.",
+      "fillSpans": true,
+      "id": "avg-ttft-over-time",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.ttft.duration_ms.sum",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Avg TTFT ms sum",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.ttft.duration_ms.count",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "B",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Avg TTFT ms count",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "B",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": [
+            {
+              "color": "#34a853",
+              "disabled": false,
+              "expression": "A / B",
+              "legend": "Avg TTFT ms",
+              "queryName": "F1"
+            }
+          ]
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-avg-ttft-over-time",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Average TTFT Over Time",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Average time to first meaningful response in milliseconds, calculated from codex.turn.ttfm.duration_ms sum divided by count. This is a responsiveness signal distinct from full turn completion time.",
+      "fillSpans": true,
+      "id": "avg-ttfm-over-time",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.ttfm.duration_ms.sum",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Avg TTFM ms sum",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.turn.ttfm.duration_ms.count",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "B",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Avg TTFM ms count",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "B",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": [
+            {
+              "color": "#34a853",
+              "disabled": false,
+              "expression": "A / B",
+              "legend": "Avg TTFM ms",
+              "queryName": "F1"
+            }
+          ]
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-avg-ttfm-over-time",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Average TTFM Over Time",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Codex API request count grouped by HTTP/status label and success flag. This helps distinguish normal model/API traffic from failed or unusual API responses.",
+      "fillSpans": true,
+      "id": "api-requests-by-status",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.api_request",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "status--string--tag",
+                  "key": "status",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "success--string--tag",
+                  "key": "success",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{status}} {{success}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-api-requests-by-status",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "API Requests By Status",
+      "yAxisUnit": "none"
+    },
+    {
+      "id": "row-friction-health",
+      "panelTypes": "row",
+      "query": {},
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Friction And Context Health"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Percentage of Codex tool invocations that required a permission prompt, calculated as approval requests divided by total Codex tool calls. Higher values mean more human approval friction before Codex could act.",
+      "fillSpans": true,
+      "id": "approval-request-ratio",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.approval.requested",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Approval requests",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.tool.call",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "B",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "Tool calls",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "B",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": [
+            {
+              "color": "#ffb703",
+              "disabled": false,
+              "expression": "A / B * 100",
+              "legend": "Approval request ratio %",
+              "queryName": "F1"
+            }
+          ]
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-approval-request-ratio",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Approval Request Ratio",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Failed Codex tool invocations grouped by tool name. A failure means the host action itself did not complete successfully, such as a non-zero command, failed patch application, closed stdin session, sandbox denial, or tool error; it does not necessarily mean Codex failed the overall task.",
+      "fillSpans": true,
+      "id": "tool-failures-by-tool",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.tool.call",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "success = 'false'"
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "tool--string--tag",
+                  "key": "tool",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{tool}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-tool-failures-by-tool",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Tool Failures By Tool",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Codex MCP call count grouped by MCP tool name and status. MCP calls are tool invocations routed through Model Context Protocol servers, such as documentation, GitHub, or other connector-backed helpers.",
+      "fillSpans": true,
+      "id": "mcp-calls-by-tool",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.mcp.call",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "tool--string--tag",
+                  "key": "tool",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "status--string--tag",
+                  "key": "status",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{tool}} {{status}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-mcp-calls-by-tool",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "MCP Calls By Tool",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "contextLinks": {
+        "linksData": []
+      },
+      "customLegendColors": {},
+      "decimalPrecision": 2,
+      "description": "Conversation-turn telemetry grouped by project.name to verify attribution is present. Empty or unexpected project names usually mean Codex was started without the project-aware OTEL_RESOURCE_ATTRIBUTES shell hook, or a long-running session moved across directories.",
+      "fillSpans": true,
+      "id": "project-context-health",
+      "isLogScale": false,
+      "isStacked": false,
+      "legendPosition": "bottom",
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "bar",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "codex.conversation.turn.count",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "project.name--string--tag",
+                  "key": "project.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{project.name}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "codex-dashboard-project-context-health",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder",
+        "unit": ""
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Project Context Health",
+      "yAxisUnit": "none"
+    }
+  ]
+}
