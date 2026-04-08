@@ -233,8 +233,8 @@ class DockerRuntimeTests(unittest.TestCase):
         with mock.patch.dict(
             os.environ,
             runtime_env(
-                SIGNOZ_CODEX_CLICKHOUSE_WRITE_PASSWORD="write-pass",
-                SIGNOZ_CODEX_CLICKHOUSE_READONLY_PASSWORD="readonly-pass",
+                SIGNOZ_CODEX_CLICKHOUSE_WRITE_PASSWORD="write-pass",  # nosec B106
+                SIGNOZ_CODEX_CLICKHOUSE_READONLY_PASSWORD="readonly-pass",  # nosec B106
             ),
             clear=True,
         ):
@@ -252,7 +252,14 @@ class DockerRuntimeTests(unittest.TestCase):
             users_template = root / "users.template.xml"
             signoz_template = root / "prometheus.template.yml"
             users_template.write_text(
-                "<clickhouse><users><codex_readonly><password_sha256_hex>__SIGNOZ_CODEX_CLICKHOUSE_READONLY_PASSWORD_SHA256_HEX__</password_sha256_hex></codex_readonly><default><password_sha256_hex>__SIGNOZ_CODEX_CLICKHOUSE_WRITE_PASSWORD_SHA256_HEX__</password_sha256_hex></default></users></clickhouse>",
+                "<clickhouse><users>"
+                "<codex_readonly><password_sha256_hex>"
+                "__SIGNOZ_CODEX_CLICKHOUSE_READONLY_PASSWORD_SHA256_HEX__"
+                "</password_sha256_hex></codex_readonly>"
+                "<default><password_sha256_hex>"
+                "__SIGNOZ_CODEX_CLICKHOUSE_WRITE_PASSWORD_SHA256_HEX__"
+                "</password_sha256_hex></default>"
+                "</users></clickhouse>",
                 encoding="utf-8",
             )
             signoz_template.write_text(
