@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from jsonl_utils import load_jsonl_objects
 from project_context import resolve_project_root
 
 SCHEMA_VERSION = 2
@@ -221,25 +222,7 @@ def append_event(run_dir: Path, event: dict[str, Any]) -> Path:
 
 def load_events(run_dir: Path) -> tuple[list[dict[str, Any]], list[str]]:
     path = events_path(run_dir)
-    if not path.exists():
-        return [], []
-    events: list[dict[str, Any]] = []
-    invalid: list[str] = []
-    with path.open("r", encoding="utf-8") as handle:
-        for lineno, line in enumerate(handle, start=1):
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                payload = json.loads(line)
-            except json.JSONDecodeError:
-                invalid.append(f"{path}:{lineno}")
-                continue
-            if isinstance(payload, dict):
-                events.append(payload)
-            else:
-                invalid.append(f"{path}:{lineno}")
-    return events, invalid
+    return load_jsonl_objects(path, keep_invalid_paths=True)
 
 
 def project_key_filename(project_key: str) -> str:
