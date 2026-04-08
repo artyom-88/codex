@@ -125,7 +125,7 @@ services:
     !!merge <<: *clickhouse-defaults
     volumes:
       - "${SIGNOZ_CODEX_CLICKHOUSE_CONFIG:-./common/clickhouse/config.xml}:/etc/clickhouse-server/config.xml"
-      - "${SIGNOZ_CODEX_CLICKHOUSE_USERS:-./common/clickhouse/users.xml}:/etc/clickhouse-server/users.xml"
+      - "${SIGNOZ_CODEX_CLICKHOUSE_USERS:-./local/generated/clickhouse-users.xml}:/etc/clickhouse-server/users.xml"
       - "${SIGNOZ_CODEX_CLICKHOUSE_CUSTOM_FUNCTION:-./common/clickhouse/custom-function.xml}:/etc/clickhouse-server/custom-function.xml"
       - "${SIGNOZ_CODEX_CLICKHOUSE_USER_SCRIPTS:-./common/clickhouse/user_scripts}:/var/lib/clickhouse/user_scripts/"
       - "${SIGNOZ_CODEX_CLICKHOUSE_CLUSTER:-./common/clickhouse/cluster.xml}:/etc/clickhouse-server/config.d/cluster.xml"
@@ -139,12 +139,12 @@ services:
     ports:
       - "${SIGNOZ_CODEX_BIND_ADDR:-127.0.0.1}:8105:8080"
     volumes:
-      - "${SIGNOZ_CODEX_SIGNOZ_PROMETHEUS:-./common/signoz/prometheus.yml}:/root/config/prometheus.yml"
+      - "${SIGNOZ_CODEX_SIGNOZ_PROMETHEUS:-./local/generated/signoz-prometheus.yml}:/root/config/prometheus.yml"
       - "${SIGNOZ_CODEX_SIGNOZ_COMMON:-./common/signoz}:/root/config/signoz-common"
       - sqlite:/var/lib/signoz/
     environment:
       - SIGNOZ_ALERTMANAGER_PROVIDER=signoz
-      - SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=tcp://clickhouse:9000
+      - SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=${SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN:?}
       - SIGNOZ_SQLSTORE_SQLITE_PATH=/var/lib/signoz/signoz.db
       - STORAGE=clickhouse
       - GODEBUG=netdns=go
@@ -186,7 +186,7 @@ services:
     image: signoz/signoz-schema-migrator:${OTELCOL_TAG:-v0.129.13}
     command:
       - sync
-      - --dsn=tcp://clickhouse:9000
+      - --dsn=${SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN:?}
       - --up=
     depends_on:
       clickhouse:
@@ -198,7 +198,7 @@ services:
     image: signoz/signoz-schema-migrator:${OTELCOL_TAG:-v0.129.13}
     command:
       - async
-      - --dsn=tcp://clickhouse:9000
+      - --dsn=${SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN:?}
       - --up=
     restart: on-failure
 

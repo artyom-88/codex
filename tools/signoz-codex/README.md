@@ -50,7 +50,7 @@ These ports intentionally differ from the existing Claude-focused stack so both 
 The helper uses the active Docker context by default.
 
 - Local Docker context: bind mounts stay local and the advertised stack host defaults to `localhost`
-- Remote Docker context: the helper inspects the selected context and reports the reachable stack host based on runtime settings
+- Remote Docker context: the helper keeps localhost-oriented defaults when published ports stay on the remote host loopback interface, and only advertises the remote host directly when you opt into a non-loopback bind
 
 Optional runtime overrides live in:
 - `examples/runtime.env.example`
@@ -72,9 +72,9 @@ The main controls are:
 
 Generic remote Docker engines are supported for inspection commands, but starting the stack requires either a local engine or a configured remote asset-sync command because the compose file bind-mounts project config files.
 
-Keep `SIGNOZ_CODEX_BIND_ADDR` at the default `127.0.0.1` for local use. Set it to `0.0.0.0` only when you intentionally need access from another host and accept exposing local telemetry endpoints on the reachable network.
+Keep `SIGNOZ_CODEX_BIND_ADDR` at the default `127.0.0.1` for local use. On remote Docker engines, that default still publishes the ports on the remote host loopback interface, so direct access from your workstation requires an SSH tunnel and the helper will keep advertising `localhost`. Set `SIGNOZ_CODEX_BIND_ADDR=0.0.0.0` only when you intentionally need direct access from another host, and pair it with `SIGNOZ_CODEX_STACK_HOST=<remote-host>` so the reported UI and OTLP endpoints match the exposed address.
 
-For remote engines, the synced assets must include the full `common/` tree plus `otel-collector-config.yaml`, because the startup path now verifies the downloaded `histogramQuantile` helper against the tracked checksum manifest in `common/clickhouse/histogram-quantile.sha256`.
+For remote engines, the synced assets must include the full `common/` tree, `local/generated/`, and `otel-collector-config.yaml`, because startup now renders local secret-bearing runtime files under `local/generated/` and still verifies the downloaded `histogramQuantile` helper against the tracked checksum manifest in `common/clickhouse/histogram-quantile.sha256`.
 
 ## Using The Examples
 
@@ -114,12 +114,12 @@ Edit `./local/runtime.env` and uncomment only the variables you need.
 One concrete remote sync example is:
 
 ```sh
-rsync -az --delete ./common ./otel-collector-config.yaml docker-host:/srv/signoz-codex/
+rsync -az --delete ./common ./local/generated ./otel-collector-config.yaml docker-host:/srv/signoz-codex/
 ```
 
 Then set `SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD` to run that command before `start` or `restart`.
 
-The `signoz-codex` Python entrypoint auto-loads `local/runtime.env` if it exists, so no `.zshrc` change is required for runtime overrides.
+The `signoz-codex` Python entrypoint auto-loads `local/runtime.env` if it exists, renders secret-bearing runtime files into `local/generated/`, and stores generated ClickHouse credentials in `local/generated/clickhouse.env` if you do not provide your own passwords.
 
 Then run:
 
@@ -155,7 +155,7 @@ Use the single entry point instead of the full `docker compose ... clickhouse-cl
 - `./scripts/signoz-codex sql-read --file ./query.sql`
 - `cat ./query.sql | ./scripts/signoz-codex sql-read`
 
-Use `sql` only when you intentionally need a non-read-only session for DDL, maintenance, or writes. `sql-read` rejects mutating statements before execution and connects with a dedicated read-only ClickHouse user.
+Use `sql` only when you intentionally need a non-read-only session for DDL, maintenance, or writes. `sql-read` rejects mutating statements before execution and connects with a dedicated read-only ClickHouse user, while write-capable helper commands authenticate explicitly with passwords kept under `local/generated/` or supplied via `local/runtime.env`.
 
 If you are using your shell alias, the same commands become:
 
@@ -252,6 +252,8 @@ If project resource attributes are missing, trace-level `attributes_string['cwd'
   Stop the conflicting service or override the advertised OTLP endpoint and published bind address with `local/runtime.env`.
 - Project-aware panels are empty:
   Start a fresh interactive `zsh` after sourcing `project_resource_attrs_hook.zsh`, then launch a new Codex session.
+- Remote Docker start works but the reported `localhost` endpoints are not reachable yet:
+  The stack is still bound to loopback on the remote host. Create an SSH tunnel to the remote host ports, or switch to `SIGNOZ_CODEX_BIND_ADDR=0.0.0.0` and set `SIGNOZ_CODEX_STACK_HOST` to the host you want Codex and your browser to use.
 - Remote Docker start fails before compose comes up:
   Confirm that your sync command copies `common/` and `otel-collector-config.yaml` into `SIGNOZ_CODEX_REMOTE_ASSETS_ROOT`.
 

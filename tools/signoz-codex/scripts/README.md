@@ -12,12 +12,14 @@ Use `./scripts/signoz-codex` as the stable entry point from the project root.
 - `project_resource_attrs.py`: resolves Git-or-Codex-project metadata and merges it into `OTEL_RESOURCE_ATTRIBUTES` for shell hooks
 - `project_resource_attrs_hook.zsh`: lightweight `zsh` hook that calls `project_resource_attrs.py` on startup and directory changes
 
-The scripts use the active Docker context by default. Local contexts run directly from the repo checkout. Remote contexts are supported too, but stack startup needs a remote asset-sync command because the compose file bind-mounts project config files.
+The scripts use the active Docker context by default. Local contexts run directly from the repo checkout. Remote contexts are supported too, but stack startup needs a remote asset-sync command because the compose file bind-mounts project config files. With the default loopback bind, remote contexts keep advertising `localhost` so you can pair them with an SSH tunnel; if you want direct remote-host access, set both `SIGNOZ_CODEX_BIND_ADDR=0.0.0.0` and `SIGNOZ_CODEX_STACK_HOST=<remote-host>`.
+
+On first use, the helper renders secret-bearing runtime files into `local/generated/`. That directory stays git-ignored. If you do not provide ClickHouse passwords yourself, the helper also creates `local/generated/clickhouse.env` with generated credentials and reuses them for future runs.
 
 ## SQL modes
 
-- `sql-read`: preferred for ad hoc inspection queries. It accepts inline SQL, `--file`, or stdin, rejects mutating statements, and connects with the read-only ClickHouse user.
-- `sql`: use only when you intentionally need write-capable or maintenance-oriented queries.
+- `sql-read`: preferred for ad hoc inspection queries. It accepts inline SQL, `--file`, or stdin, rejects mutating statements, and authenticates with the read-only ClickHouse user.
+- `sql`: use only when you intentionally need write-capable or maintenance-oriented queries. It authenticates with the writable ClickHouse account used by the helper stack.
 
 Examples:
 
@@ -34,6 +36,8 @@ Optional runtime env vars:
 
 - `DOCKER_CONTEXT` to select a non-default Docker context
 - `SIGNOZ_CODEX_ENGINE_MODE=auto|local|remote`
+- `SIGNOZ_CODEX_CLICKHOUSE_WRITE_PASSWORD` to pin the writable ClickHouse password instead of using a generated local one
+- `SIGNOZ_CODEX_CLICKHOUSE_READONLY_PASSWORD` to pin the read-only ClickHouse password instead of using a generated local one
 - `SIGNOZ_CODEX_REMOTE_ASSETS_ROOT` to choose the target asset directory on the remote engine host
 - `SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD` to run a local sync command before remote compose startup
 - `SIGNOZ_CODEX_STACK_HOST` to override the advertised UI and OTLP host
@@ -55,7 +59,7 @@ mkdir -p ./local
 cp ./examples/runtime.env.example ./local/runtime.env
 ```
 
-The example env file is documentation plus a reusable template. The `signoz-codex` Python entrypoint auto-loads `local/runtime.env` if it exists, and `local/` is git-ignored.
+The example env file is documentation plus a reusable template. The `signoz-codex` Python entrypoint auto-loads `local/runtime.env` if it exists, and `local/` is git-ignored. Rendered secret-bearing files land under `local/generated/`.
 
 ## Native project metadata
 

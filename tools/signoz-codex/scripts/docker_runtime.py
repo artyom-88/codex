@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
+import hashlib
 import shutil
 import subprocess  # nosec B404
 from dataclasses import dataclass
@@ -14,13 +16,26 @@ COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yaml"
 PROJECT_NAME = "signoz-codex"
 DEFAULT_BIND_ADDR = "127.0.0.1"
 DOCKER_BIN = shutil.which("docker") or "docker"
+CLICKHOUSE_WRITE_USER = "default"
+CLICKHOUSE_READONLY_USER = "codex_readonly"
+CLICKHOUSE_WRITE_PASSWORD_ENV = "SIGNOZ_CODEX_CLICKHOUSE_WRITE_PASSWORD"
+CLICKHOUSE_READONLY_PASSWORD_ENV = "SIGNOZ_CODEX_CLICKHOUSE_READONLY_PASSWORD"
+CLICKHOUSE_WRITE_DSN_ENV = "SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN"
+GENERATED_DIR = PROJECT_ROOT / "local" / "generated"
+CREDENTIALS_ENV_PATH = GENERATED_DIR / "clickhouse.env"
+CLICKHOUSE_USERS_TEMPLATE_PATH = PROJECT_ROOT / "common" / "clickhouse" / "users.template.xml"
+CLICKHOUSE_USERS_RENDERED_PATH = GENERATED_DIR / "clickhouse-users.xml"
+SIGNOZ_PROMETHEUS_TEMPLATE_PATH = PROJECT_ROOT / "common" / "signoz" / "prometheus.template.yml"
+SIGNOZ_PROMETHEUS_RENDERED_PATH = GENERATED_DIR / "signoz-prometheus.yml"
 
 
 def load_local_runtime_env() -> None:
     path = PROJECT_ROOT / "local" / "runtime.env"
-    if not path.exists():
-        return
+    if path.exists():
+        _load_env_file(path)
 
+
+def _load_env_file(path: Path) -> None:
     for raw_line in path.read_text(encoding="utf-8").splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#"):
@@ -44,13 +59,13 @@ def remote_bind_mounts(remote_assets_root: Path) -> dict[str, Path]:
     return {
         "SIGNOZ_CODEX_CLICKHOUSE_USER_SCRIPTS": remote_assets_root / "common" / "clickhouse" / "user_scripts",
         "SIGNOZ_CODEX_CLICKHOUSE_CONFIG": remote_assets_root / "common" / "clickhouse" / "config.xml",
-        "SIGNOZ_CODEX_CLICKHOUSE_USERS": remote_assets_root / "common" / "clickhouse" / "users.xml",
+        "SIGNOZ_CODEX_CLICKHOUSE_USERS": remote_assets_root / "local" / "generated" / "clickhouse-users.xml",
         "SIGNOZ_CODEX_CLICKHOUSE_CUSTOM_FUNCTION": remote_assets_root / "common" / "clickhouse" / "custom-function.xml",
         "SIGNOZ_CODEX_CLICKHOUSE_HISTOGRAM_SHA256": (
             remote_assets_root / "common" / "clickhouse" / "histogram-quantile.sha256"
         ),
         "SIGNOZ_CODEX_CLICKHOUSE_CLUSTER": remote_assets_root / "common" / "clickhouse" / "cluster.xml",
-        "SIGNOZ_CODEX_SIGNOZ_PROMETHEUS": remote_assets_root / "common" / "signoz" / "prometheus.yml",
+        "SIGNOZ_CODEX_SIGNOZ_PROMETHEUS": remote_assets_root / "local" / "generated" / "signoz-prometheus.yml",
         "SIGNOZ_CODEX_SIGNOZ_COMMON": remote_assets_root / "common" / "signoz",
         "SIGNOZ_CODEX_OTEL_COLLECTOR_CONFIG": remote_assets_root / "otel-collector-config.yaml",
     }
@@ -77,6 +92,14 @@ class RuntimeConfig:
     @property
     def requires_remote_asset_sync(self) -> bool:
         return self.uses_remote_docker_host and bool(self.remote_asset_sync_cmd)
+
+
+@dataclass(frozen=True)
+class ClickHouseCredentials:
+    write_user: str
+    write_password: str
+    readonly_user: str
+    readonly_password: str
 
 
 def _run_docker(*args: str) -> subprocess.CompletedProcess[str]:
@@ -138,6 +161,85 @@ def looks_like_remote_endpoint(endpoint: str) -> bool:
     return endpoint.startswith("tcp://") or endpoint.startswith("ssh://")
 
 
+def bind_addr_is_loopback(bind_addr: str) -> bool:
+    return bind_addr.strip().lower() in {"127.0.0.1", "localhost", "::1", "[::1]"}
+
+
+def clickhouse_credentials() -> ClickHouseCredentials:
+    ensure_runtime_assets_rendered()
+    return ClickHouseCredentials(
+        write_user=CLICKHOUSE_WRITE_USER,
+        write_password=os.environ[CLICKHOUSE_WRITE_PASSWORD_ENV],
+        readonly_user=CLICKHOUSE_READONLY_USER,
+        readonly_password=os.environ[CLICKHOUSE_READONLY_PASSWORD_ENV],
+    )
+
+
+def _generated_password() -> str:
+    return secrets.token_hex(24)
+
+
+def _quote_env_value(value: str) -> str:
+    return "'" + value.replace("'", "'\"'\"'") + "'"
+
+
+def _write_file_if_changed(path: Path, content: str) -> None:
+    if path.exists() and path.read_text(encoding="utf-8") == content:
+        return
+    path.write_text(content, encoding="utf-8")
+
+
+def _sha256_hex(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def ensure_clickhouse_secret_env() -> None:
+    if CREDENTIALS_ENV_PATH.exists():
+        _load_env_file(CREDENTIALS_ENV_PATH)
+
+    if CLICKHOUSE_WRITE_PASSWORD_ENV not in os.environ:
+        os.environ[CLICKHOUSE_WRITE_PASSWORD_ENV] = _generated_password()
+    if CLICKHOUSE_READONLY_PASSWORD_ENV not in os.environ:
+        os.environ[CLICKHOUSE_READONLY_PASSWORD_ENV] = _generated_password()
+
+    os.environ.setdefault(
+        CLICKHOUSE_WRITE_DSN_ENV,
+        (
+            f"tcp://{CLICKHOUSE_WRITE_USER}:{os.environ[CLICKHOUSE_WRITE_PASSWORD_ENV]}"
+            "@clickhouse:9000"
+        ),
+    )
+
+    GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+    env_lines = [
+        "# Generated by tools/signoz-codex/scripts/docker_runtime.py",
+        f"export {CLICKHOUSE_WRITE_PASSWORD_ENV}={_quote_env_value(os.environ[CLICKHOUSE_WRITE_PASSWORD_ENV])}",
+        f"export {CLICKHOUSE_READONLY_PASSWORD_ENV}={_quote_env_value(os.environ[CLICKHOUSE_READONLY_PASSWORD_ENV])}",
+        f"export {CLICKHOUSE_WRITE_DSN_ENV}={_quote_env_value(os.environ[CLICKHOUSE_WRITE_DSN_ENV])}",
+        "",
+    ]
+    _write_file_if_changed(CREDENTIALS_ENV_PATH, "\n".join(env_lines))
+
+
+def ensure_runtime_assets_rendered() -> None:
+    ensure_clickhouse_secret_env()
+    GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+
+    users_template = CLICKHOUSE_USERS_TEMPLATE_PATH.read_text(encoding="utf-8")
+    users_rendered = (
+        users_template
+        .replace("__SIGNOZ_CODEX_CLICKHOUSE_READONLY_PASSWORD_SHA256_HEX__", _sha256_hex(os.environ[CLICKHOUSE_READONLY_PASSWORD_ENV]))
+        .replace("__SIGNOZ_CODEX_CLICKHOUSE_WRITE_PASSWORD_SHA256_HEX__", _sha256_hex(os.environ[CLICKHOUSE_WRITE_PASSWORD_ENV]))
+    )
+    _write_file_if_changed(CLICKHOUSE_USERS_RENDERED_PATH, users_rendered)
+
+    signoz_prometheus_template = SIGNOZ_PROMETHEUS_TEMPLATE_PATH.read_text(encoding="utf-8")
+    signoz_prometheus_rendered = signoz_prometheus_template.replace(
+        "__SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN__", os.environ[CLICKHOUSE_WRITE_DSN_ENV]
+    )
+    _write_file_if_changed(SIGNOZ_PROMETHEUS_RENDERED_PATH, signoz_prometheus_rendered)
+
+
 def resolve_runtime() -> RuntimeConfig:
     context_name, context_source = resolve_docker_context()
     endpoint = docker_endpoint(context_name)
@@ -155,10 +257,11 @@ def resolve_runtime() -> RuntimeConfig:
     else:
         engine_mode = "local"
 
+    bind_addr = os.environ.get("SIGNOZ_CODEX_BIND_ADDR", "").strip() or DEFAULT_BIND_ADDR
     stack_host_override = os.environ.get("SIGNOZ_CODEX_STACK_HOST", "").strip()
     if stack_host_override:
         resolved_stack_host = stack_host_override
-    elif engine_mode == "local":
+    elif engine_mode == "local" or bind_addr_is_loopback(bind_addr):
         resolved_stack_host = "localhost"
     else:
         resolved_stack_host = endpoint_host(endpoint) or "localhost"
@@ -166,7 +269,6 @@ def resolve_runtime() -> RuntimeConfig:
     otlp_endpoint = os.environ.get("SIGNOZ_CODEX_OTLP_ENDPOINT", "").strip() or f"http://{resolved_stack_host}:5317"
     remote_asset_sync_cmd = os.environ.get("SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD", "").strip()
     remote_assets_root = Path(os.environ.get("SIGNOZ_CODEX_REMOTE_ASSETS_ROOT", "/srv/signoz-codex"))
-    bind_addr = os.environ.get("SIGNOZ_CODEX_BIND_ADDR", "").strip() or DEFAULT_BIND_ADDR
 
     return RuntimeConfig(
         docker_context=context_name,
@@ -200,8 +302,11 @@ def compose_args(*args: str, runtime: RuntimeConfig | None = None) -> list[str]:
 
 def compose_environment(runtime: RuntimeConfig | None = None) -> dict[str, str]:
     active_runtime = runtime or resolve_runtime()
+    ensure_clickhouse_secret_env()
     env = os.environ.copy()
     env["SIGNOZ_CODEX_BIND_ADDR"] = active_runtime.bind_addr
+    env.setdefault("SIGNOZ_CODEX_CLICKHOUSE_USERS", str(CLICKHOUSE_USERS_RENDERED_PATH))
+    env.setdefault("SIGNOZ_CODEX_SIGNOZ_PROMETHEUS", str(SIGNOZ_PROMETHEUS_RENDERED_PATH))
     if not active_runtime.requires_remote_asset_sync:
         return env
     env.update({name: str(path) for name, path in remote_bind_mounts(active_runtime.remote_assets_root).items()})
@@ -227,4 +332,10 @@ def runtime_summary_lines(runtime: RuntimeConfig | None = None) -> list[str]:
             if active_runtime.remote_asset_sync_cmd
             else "Remote asset sync: not configured"
         )
+        if bind_addr_is_loopback(active_runtime.bind_addr) and active_runtime.stack_host == "localhost":
+            lines.append("Remote access: published ports stay on the remote host loopback interface")
+            lines.append(
+                "Remote access hint: use an SSH tunnel for localhost, or set "
+                "SIGNOZ_CODEX_BIND_ADDR=0.0.0.0 and SIGNOZ_CODEX_STACK_HOST=<remote-host>"
+            )
     return lines

@@ -22,4 +22,4 @@ rule_files: []
 scrape_configs: []
 
 remote_read:
-  - url: tcp://clickhouse:9000/signoz_metrics
+  - url: __SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN__/signoz_metrics

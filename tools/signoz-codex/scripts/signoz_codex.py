@@ -16,9 +16,11 @@ from urllib.parse import urlparse
 from docker_runtime import (
     PROJECT_ROOT,
     RuntimeConfig,
+    bind_addr_is_loopback,
     compose_args,
     compose_environment,
     docker_args,
+    ensure_runtime_assets_rendered,
     resolve_runtime,
     runtime_summary_lines,
     stack_host,
@@ -47,6 +49,20 @@ def log_warn(message: str) -> None:
 
 def log_error(message: str) -> None:
     print(f"{RED}[ERROR]{RESET} {message}", file=sys.stderr)
+
+
+def remote_loopback_access_warning(runtime: RuntimeConfig) -> str | None:
+    if (
+        getattr(runtime, "uses_remote_docker_host", False)
+        and bind_addr_is_loopback(getattr(runtime, "bind_addr", ""))
+        and stack_host(runtime) == "localhost"
+    ):
+        return (
+            "Remote Docker ports are still bound to the remote host loopback interface. "
+            "Use an SSH tunnel for localhost access, or set SIGNOZ_CODEX_BIND_ADDR=0.0.0.0 "
+            "and SIGNOZ_CODEX_STACK_HOST=<remote-host> for direct access."
+        )
+    return None
 
 
 def run_compose(
@@ -190,6 +206,9 @@ def show_status(runtime: RuntimeConfig) -> int:
         log_warn("Not all required services are running yet")
     for line in runtime_summary_lines(runtime):
         log_info(line)
+    access_warning = remote_loopback_access_warning(runtime)
+    if access_warning:
+        log_warn(access_warning)
     log_info(f"SigNoz UI: http://{host}:8105")
     log_info(f"OTLP gRPC: {host}:5317")
     log_info(f"OTLP HTTP: http://{host}:5318")
@@ -306,6 +325,10 @@ def health_check(runtime: RuntimeConfig) -> int:
     host = stack_host(runtime)
     log_info("Checking SigNoz Codex stack health")
     print()
+    access_warning = remote_loopback_access_warning(runtime)
+    if access_warning:
+        log_warn(access_warning)
+        print("")
 
     clickhouse_ok = subprocess.run(
         compose_args(
@@ -487,6 +510,7 @@ def main(argv: list[str] | None = None) -> int:
         'purge',
     }
     if command in docker_commands:
+        ensure_runtime_assets_rendered()
         check_docker(runtime)
 
     if command == 'start':

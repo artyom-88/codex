@@ -3,10 +3,25 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 from test_support import load_script_module
 
 MODULE = load_script_module("query_clickhouse", "query_clickhouse.py")
+
+
+class CredentialsStub:
+    write_user = "default"
+    readonly_user = "codex_readonly"
+
+    @property
+    def write_password(self) -> str:
+        return "writer1"
+
+    @property
+    def readonly_password(self) -> str:
+        return "reader1"
 
 
 class QueryClickhouseTests(unittest.TestCase):
@@ -59,6 +74,38 @@ class QueryClickhouseTests(unittest.TestCase):
         with self.assertRaises(SystemExit) as error:
             MODULE.validate_readonly_query("SELECT 1; DROP TABLE t")
         self.assertIn("DROP TABLE t", str(error.exception))
+
+    def test_main_uses_readonly_credentials_for_sql_read(self) -> None:
+        with (
+            mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]),
+            mock.patch.object(MODULE, "compose_environment", return_value={}),
+            mock.patch.object(MODULE, "clickhouse_credentials", return_value=CredentialsStub()),
+            mock.patch.object(MODULE.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run,
+        ):
+            self.assertEqual(MODULE.main(["--readonly", "SELECT 1"]), 0)
+
+        command = run.call_args.args[0]
+        readonly_flag = "--password=" + CredentialsStub().readonly_password
+        write_flag = "--password=" + CredentialsStub().write_password
+        self.assertIn("--user=codex_readonly", command)
+        self.assertIn(readonly_flag, command)
+        self.assertNotIn(write_flag, command)
+
+    def test_main_uses_write_credentials_for_sql(self) -> None:
+        with (
+            mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]),
+            mock.patch.object(MODULE, "compose_environment", return_value={}),
+            mock.patch.object(MODULE, "clickhouse_credentials", return_value=CredentialsStub()),
+            mock.patch.object(MODULE.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run,
+        ):
+            self.assertEqual(MODULE.main(["SELECT 1"]), 0)
+
+        command = run.call_args.args[0]
+        write_flag = "--password=" + CredentialsStub().write_password
+        readonly_flag = "--password=" + CredentialsStub().readonly_password
+        self.assertIn("--user=default", command)
+        self.assertIn(write_flag, command)
+        self.assertNotIn(readonly_flag, command)
 
 
 if __name__ == "__main__":
