@@ -89,6 +89,7 @@ Do not apply changes until the user approves the specific items.
 - During the run, use `event` calls for meaningful lifecycle checkpoints such as `evidence`, `surfaces`, `recommendations`, `apply`, `cleanup`, `error`, or `interrupted`.
 - Record recommendation outcomes using statuses such as `proposed`, `approved`, `applied`, `rejected`, or `deferred`.
 - Run `python3 scripts/suggest_log_cleanup.py --cwd "$PWD" --format markdown` and include any meaningful stale-log suggestions in the final response when relevant.
+- When the stale-log suggestions should be applied immediately, run `python3 scripts/suggest_log_cleanup.py --cwd "$PWD" --apply --format markdown`.
 - Use prior reflection logs to suppress stale advice, highlight repeated successful recommendations, and call out repeated rejected suggestions only when that history materially improves the recommendation quality.
 - This logging is skill-driven, not a separate hidden Codex hook, so the lifecycle logger must be called explicitly as part of the workflow.
 

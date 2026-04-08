@@ -58,6 +58,7 @@ When the user wants a comment or description-ready note, compress it:
 ## Saved Reports
 
 When the skill is explicitly invoked, export the final review by default to repo-local `.codex/code-review/review-<target-slug>.md`.
+Also export the exact reviewed diff by default to repo-local `.codex/diff/diff-<target-slug>.patch` as a unified patch.
 Compute `<target-slug>` with the slugging rule from `references/review-sources.md`, and fall back to `head-<short-sha>` when needed.
 Skip the file only when the user explicitly asks for chat-only output.
-Mention the saved path in the response so the user can find it immediately.
+Mention both saved paths in the response so the user can find them immediately.

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from list_memory_surfaces import resolve_project_root
+from project_context import resolve_project_root
 
 SCHEMA_VERSION = 2
 DEFAULT_KEEP_DAYS = 30
@@ -440,6 +440,15 @@ def list_projects(entries: list[dict[str, Any]]) -> list[str]:
     return sorted({str(entry.get("project_name") or "unknown") for entry in entries})
 
 
+def filter_entries_for_project(
+    entries: list[dict[str, Any]],
+    project_name: str | None,
+) -> list[dict[str, Any]]:
+    if project_name is None:
+        return entries
+    return [entry for entry in entries if entry.get("project_name") == project_name]
+
+
 def summarize_recent_logs(
     entries: list[dict[str, Any]],
     *,
@@ -447,8 +456,8 @@ def summarize_recent_logs(
     limit: int = 5,
     active_entries: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    project_entries = [entry for entry in entries if entry.get("project_name") == project_name] if project_name else []
-    active = active_entries or []
+    project_entries = filter_entries_for_project(entries, project_name)
+    active = filter_entries_for_project(active_entries or [], project_name)
     stale_active = detect_stale_active_runs(active)
     summary = {
         "total_logs": len(entries),
@@ -458,7 +467,7 @@ def summarize_recent_logs(
         "active_runs": len(active),
         "stale_active_runs": len(stale_active),
     }
-    summary.update(summarize_recommendation_activity(entries, limit))
+    summary.update(summarize_recommendation_activity(project_entries, limit))
     return summary
 
 
@@ -621,9 +630,14 @@ def append_superseded_suggestions(
     suggestions: dict[str, dict[str, Any]],
     entries: list[dict[str, Any]],
 ) -> None:
-    signatures: defaultdict[tuple[str, tuple[tuple[str, str], ...]], list[dict[str, Any]]] = defaultdict(list)
+    signatures: defaultdict[
+        tuple[str, str, tuple[tuple[str, str], ...]],
+        list[dict[str, Any]],
+    ] = defaultdict(list)
     for entry in entries:
-        signatures[_recommendation_signature(entry)].append(entry)
+        project_identity = str(entry.get("project_key") or entry.get("project_name") or "unknown")
+        request_summary, recommendation_outcomes = _recommendation_signature(entry)
+        signatures[(project_identity, request_summary, recommendation_outcomes)].append(entry)
 
     for group in signatures.values():
         if len(group) < 2:

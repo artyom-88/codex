@@ -153,12 +153,28 @@ class ReflectionLogTests(unittest.TestCase):
                     },
                 ],
             },
+            {
+                "project_name": "repo-b",
+                "recommendations": [
+                    {
+                        "recommendation_id": "rec-foreign",
+                        "target": "README.md",
+                        "scope": "project-local",
+                        "summary": "ignore me",
+                        "status": "rejected",
+                    },
+                ],
+            },
         ]
         active_entries = [
             {
                 "_timestamp": MODULE.parse_timestamp("2026-04-08T15:00:00Z"),
                 "project_name": "repo-a",
-            }
+            },
+            {
+                "_timestamp": MODULE.parse_timestamp("2026-04-08T01:00:00Z"),
+                "project_name": "repo-b",
+            },
         ]
 
         summary = MODULE.summarize_recent_logs(
@@ -169,6 +185,8 @@ class ReflectionLogTests(unittest.TestCase):
         )
         self.assertEqual(summary["project_logs"], 2)
         self.assertEqual(summary["active_runs"], 1)
+        self.assertEqual(summary["stale_active_runs"], 0)
+        self.assertEqual(len(summary["repeated_recommendations"]), 2)
         self.assertEqual(summary["repeated_recommendations"][0]["recommendation_id"], "rec-1")
         self.assertEqual(
             summary["repeated_applied_recommendations"][0]["recommendation_id"],
@@ -178,6 +196,52 @@ class ReflectionLogTests(unittest.TestCase):
             summary["repeated_rejected_recommendations"][0]["recommendation_id"],
             "rec-2",
         )
+
+    def test_build_reflection_signals_ignores_other_projects(self) -> None:
+        recommendations = [
+            {
+                "recommendation_id": "rec-1",
+                "target": "AGENTS.md",
+                "scope": "global",
+                "summary": "a",
+                "status": "applied",
+            }
+        ]
+        prior_logs = [
+            {
+                "project_name": "repo-a",
+                "recommendations": [
+                    {
+                        "recommendation_id": "rec-1",
+                        "target": "AGENTS.md",
+                        "scope": "global",
+                        "summary": "a",
+                        "status": "applied",
+                    }
+                ],
+            },
+            {
+                "project_name": "repo-b",
+                "recommendations": [
+                    {
+                        "recommendation_id": "rec-1",
+                        "target": "README.md",
+                        "scope": "project-local",
+                        "summary": "foreign",
+                        "status": "rejected",
+                    }
+                ],
+            },
+        ]
+
+        signals = MODULE.build_reflection_signals(recommendations, prior_logs, "repo-a")
+
+        self.assertEqual(signals["prior_log_count"], 2)
+        self.assertEqual(signals["prior_project_log_count"], 1)
+        self.assertEqual(len(signals["repeated_recommendations"]), 1)
+        self.assertEqual(signals["repeated_recommendations"][0]["recommendation_id"], "rec-1")
+        self.assertEqual(len(signals["repeated_applied_recommendations"]), 1)
+        self.assertEqual(signals["repeated_rejected_recommendations"], [])
 
     def test_cleanup_suggestions_flag_age_superseded_and_stale_active(self) -> None:
         now = datetime(2026, 4, 8, 15, 0, tzinfo=timezone.utc)
@@ -216,6 +280,38 @@ class ReflectionLogTests(unittest.TestCase):
         self.assertIn("superseded", reasons["old-run"])
         self.assertIn("active/project.json", reasons)
         self.assertIn("stale active-run metadata", reasons["active/project.json"])
+
+    def test_cleanup_suggestions_do_not_cross_project_supersede(self) -> None:
+        now = datetime(2026, 4, 8, 15, 0, tzinfo=timezone.utc)
+        entries = [
+            {
+                "_run_dir": "repo-a-run",
+                "_timestamp": MODULE.parse_timestamp("2026-04-07T15:00:00Z"),
+                "project_name": "repo-a",
+                "project_key": "repo-a-key",
+                "user_request_summary": "same request",
+                "recommendations": [{"recommendation_id": "rec-1", "status": "applied"}],
+            },
+            {
+                "_run_dir": "repo-b-run",
+                "_timestamp": MODULE.parse_timestamp("2026-04-08T15:00:00Z"),
+                "project_name": "repo-b",
+                "project_key": "repo-b-key",
+                "user_request_summary": "same request",
+                "recommendations": [{"recommendation_id": "rec-1", "status": "applied"}],
+            },
+        ]
+
+        suggestions = MODULE.build_cleanup_suggestions(
+            entries,
+            now=now,
+            keep_days=30,
+            keep_latest=5,
+        )
+
+        paths = {item["path"] for item in suggestions}
+        self.assertNotIn("repo-a-run", paths)
+        self.assertNotIn("repo-b-run", paths)
 
     def test_mark_superseded_run_appends_interrupted_event(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
