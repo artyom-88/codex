@@ -12,6 +12,8 @@
 !/.codex/
 /.codex/*
 !/.codex/AGENTS.md
+!/.codex/instructions/
+!/.codex/instructions/**
 
 # Generated Python files stay private everywhere
 __pycache__/

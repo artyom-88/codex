@@ -3,12 +3,11 @@
 ## Tool Guidance
 
 - `.codex/instructions/tools/signoz.md` contains SigNoz stack workflow guidance for `tools/signoz-codex/` plus shared SigNoz conventions. Load only when working on SigNoz-related tooling.
+- `.codex/instructions/workflow/sharing.md` contains repo publishing workflow and public/private boundary guidance. Load only when changing tracked shareable content, allowlists, or GitHub-facing docs.
 
 ## Shareable Local Skills
 
-- When adding a new local skill intended to be shareable, update `.gitignore`, `skills/INDEX.md`, and `README.md` together.
-- Add an explicit `!/skills/<skill-name>/` allowlist rule before staging shareable skill files.
-- Keep this publishing workflow repo-local. Do not move it into the global root `AGENTS.md`.
+- Keep shareability workflow repo-local. Do not move it into the global root `AGENTS.md`.
 
 ## Project Artifacts
 

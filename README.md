@@ -1,77 +1,35 @@
 # Shareable Codex Home
 
-This repository is a curated, shareable subset of a local Codex home directory.
+This repository contains a public, reusable subset of a local Codex home directory.
+It is meant to be copied from, adapted, and used as reference material for Codex setup,
+repo guidance, sharable skills, and supporting tooling.
 
-Everything is private by default. A file is eligible for publishing only if it is:
+## What is included
 
-- reusable across clients or projects
-- free of secrets, tokens, auth state, and local machine state
-- anonymized enough to share
+- `AGENTS.md` and `.codex/AGENTS.md` for global and repo-local guidance examples
+- `config.example.toml` as a safe baseline config template
+- `instructions/` and `.codex/instructions/` for reusable workflow and tool guidance
+- `rules/global.rules` for shared rule examples
+- selected local skills such as `skills/code-review/` and `skills/memory-refiner/`
+- `tools/signoz-codex/` for SigNoz-oriented Codex telemetry tooling
+- `.githooks/` and `.github/` for guardrails and CI automation
 
-## Current public set
+## How to use it
 
-- `AGENTS.md`
-- `.codex/AGENTS.md`
-- `.pylintrc`
-- `config.example.toml`
-- everything under `.github/`
-- everything under `.githooks/`
-- everything under `instructions/`
-- `rules/global.rules`
-- everything under `skills/code-review/`
-- everything under `skills/memory-refiner/`
-- everything under `tools/signoz-codex/`
+- Start from `config.example.toml` and copy only the defaults you want into your private live `config.toml`
+- Reuse guidance from `AGENTS.md`, `instructions/`, or `.codex/AGENTS.md` as templates for your own Codex setup
+- Explore `tools/signoz-codex/` if you want OTEL or SigNoz support for Codex activity
+- Copy skills selectively rather than treating this repo as an all-or-nothing Codex home
 
-System skills under `skills/.system/` stay private.
+## Privacy boundary
 
-## Publish workflow
+This repo intentionally excludes live auth, runtime history, sessions, caches, databases,
+memories, shell snapshots, and other machine-specific state.
 
-1. Review the file contents and confirm they are client-agnostic and safe to share.
-2. Add the folder or exact path to `.gitignore` if it is not already allowlisted.
-3. When adding a new shareable local skill, add an explicit `!/skills/<skill-name>/` allowlist rule before staging it.
-4. Stage only the intended paths with `git add <path>`.
-5. Review the staged diff with `git diff --cached`.
-6. Commit and push only after the staged diff contains no secrets, local state, or project-specific details.
+`config.example.toml` is public-safe by design. Keep personal paths, usernames, auth state,
+and `[projects."..."]` trust entries in your private live `config.toml`, not in the example.
 
-## Repo-Local Codex Guidance
+## For contributors
 
-- Keep repo-specific Codex workflow rules in `.codex/AGENTS.md`.
-- Do not move shareable-skill publishing workflow into the global root `AGENTS.md`.
-
-## Shared config template
-
-`config.example.toml` is a sanitized template for sharable Codex defaults.
-
-- Codex loads the live user config from `config.toml`, not from `config.example.toml`.
-- Keep machine-specific settings in the private `config.toml`, especially absolute paths, usernames, and `[projects."..."]` trust entries.
-- Mirror only safe, generic defaults into `config.example.toml`.
-
-## Pre-commit guard
-
-This repo uses a native Git pre-commit hook from `.githooks/`.
-
-- Install it with `git config core.hooksPath .githooks`
-- The hook requires `python3` 3.11 or newer on the machine running it
-- The hook prints short phase progress messages to stderr while it runs
-- The hook blocks commits unless both checks pass:
-- a deterministic scanner over staged paths and staged content
-- a non-interactive Codex review of the staged diff
-- Commits fail closed if Codex is unavailable, errors, or returns a blocking result
-- Regex-based deterministic checks are configured in `.githooks/commit_guard_patterns.toml`
-- The hook fails closed if that pattern config is missing, malformed, or contains invalid regexes
-- Tune Codex review for large commits with env vars:
-- `COMMIT_GUARD_CODEX_TIMEOUT_SECONDS`
-- `COMMIT_GUARD_MAX_REVIEW_DIFF_CHARS`
-- `COMMIT_GUARD_MAX_REVIEW_DIFF_STAT_CHARS`
-- `COMMIT_GUARD_MAX_REVIEW_PATHS`
-
-## GitHub automation
-
-- `.github/workflows/shareable-checks.yml` runs regular CI
-- The same workflow also runs `bandit` against tracked Python files for a basic security scan
-- `.github/dependabot.yml` keeps GitHub Actions dependencies up to date
-- CI runs `pylint` over tracked Python files
-
-## Keep private
-
-Do not publish auth, the live `config.toml`, history, caches, databases, sessions, memories, temp files, shell snapshots, editor metadata, or other runtime state. New files remain ignored until they are explicitly allowlisted.
+Keep GitHub-facing docs user-oriented. Repo-maintainer publishing workflow and shareability
+rules live in `.codex/AGENTS.md` and `.codex/instructions/workflow/sharing.md`.

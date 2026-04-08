@@ -2,12 +2,54 @@
 # Copy safe defaults from here into the private live config.toml as needed.
 # Keep machine-specific state such as [projects."..."] trust entries private.
 
+# Core model settings
 model = "gpt-5.4"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "xhigh"
+
+# Notice preferences
+[notice]
+hide_rate_limit_model_nudge = true
+
+[notice.model_migrations]
+"gpt-5.3-codex" = "gpt-5.4"
+
+# Feature and plugin toggles
+[features]
+codex_hooks = true
+
+[plugins."github@openai-curated"]
+enabled = true
+
+# Sandbox settings
+sandbox_mode = "workspace-write"
+
+
+# MCP integrations
+[mcp_servers.context7]
+args = ["run", "--rm", "-i", "mcp/context7"]
+command = "docker"
+enabled = true
+startup_timeout_sec = 120
+tool_timeout_sec = 60
 
 [mcp_servers.sequential_thinking]
-command = "docker"
 args = ["run", "--rm", "-i", "mcp/sequentialthinking"]
+command = "docker"
 enabled = true
 startup_timeout_sec = 20
 tool_timeout_sec = 60
+
+[mcp_servers.sequential_thinking.tools.sequentialthinking]
+approval_mode = "approve"
+
+# Telemetry settings for SigNoz, used with tools/signoz-codex.
+# Copy or adjust this [otel] block in the private live config.toml as needed.
+[otel]
+environment = "dev"
+exporter = { otlp-grpc = { endpoint = "http://localhost:5317" } }
+log_user_prompt = false
+metrics_exporter = { otlp-grpc = { endpoint = "http://localhost:5317" } }
+trace_exporter = { otlp-grpc = { endpoint = "http://localhost:5317" } }
+
+# Keep [projects."..."] trust entries in the private live config.toml.
