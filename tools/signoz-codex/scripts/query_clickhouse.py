@@ -3,13 +3,9 @@ from __future__ import annotations
 
 import argparse
 import re
-import subprocess
+import subprocess  # nosec B404
 import sys
 from pathlib import Path
-
-SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
 
 from docker_runtime import compose_args, compose_environment
 
@@ -86,6 +82,7 @@ def apply_output_format(query: str, output_format: str | None) -> str:
 
 
 def split_sql_statements(text: str) -> list[str]:
+    # pylint: disable=too-many-branches,too-many-statements
     statements: list[str] = []
     current: list[str] = []
     in_single = False
@@ -205,6 +202,7 @@ def split_sql_statements(text: str) -> list[str]:
 
 
 def iter_top_level_keywords(text: str) -> list[str]:
+    # pylint: disable=too-many-branches,too-many-statements
     keywords: list[str] = []
     in_single = False
     in_double = False
@@ -353,7 +351,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.multiquery:
         command.append("--multiquery")
     command.append(f"--query={query}")
-    return subprocess.run(command, check=False, env=compose_environment()).returncode
+    return subprocess.run(command, check=False, env=compose_environment()).returncode  # nosec
 
 
 if __name__ == "__main__":

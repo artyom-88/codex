@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "query_clickhouse.py"
-SPEC = importlib.util.spec_from_file_location("query_clickhouse", MODULE_PATH)
-MODULE = importlib.util.module_from_spec(SPEC)
-assert SPEC and SPEC.loader
-SPEC.loader.exec_module(MODULE)
+from test_support import load_script_module
+
+MODULE = load_script_module("query_clickhouse", "query_clickhouse.py")
 
 
 class QueryClickhouseTests(unittest.TestCase):

@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import argparse
 import os
-import subprocess
+import shutil
+import subprocess  # nosec B404
 import tomllib
 from collections import OrderedDict
 from pathlib import Path
 
 CONFIG_PATH = Path.home() / ".codex" / "config.toml"
+GIT_BIN = shutil.which("git") or "git"
 MANAGED_KEYS = ("project.name", "project.path", "vcs.repository.name")
 
 
@@ -27,6 +29,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def parse_resource_attributes(raw: str) -> OrderedDict[str, str]:
+    # pylint: disable=too-many-branches
     attrs: OrderedDict[str, str] = OrderedDict()
     if not raw:
         return attrs
@@ -93,17 +96,19 @@ def escape_resource_component(value: str) -> str:
 
 
 def serialize_resource_attributes(attrs: OrderedDict[str, str]) -> str:
-    return ",".join(f"{escape_resource_component(key)}={escape_resource_component(value)}" for key, value in attrs.items())
+    return ",".join(
+        f"{escape_resource_component(key)}={escape_resource_component(value)}" for key, value in attrs.items()
+    )
 
 
 def git_repo_root(cwd: Path) -> Path | None:
     try:
         result = subprocess.run(
-            ["git", "-C", str(cwd), "rev-parse", "--show-toplevel"],
+            [GIT_BIN, "-C", str(cwd), "rev-parse", "--show-toplevel"],
             check=True,
             text=True,
             capture_output=True,
-        )
+        )  # nosec B603
     except (FileNotFoundError, subprocess.CalledProcessError):
         return None
 

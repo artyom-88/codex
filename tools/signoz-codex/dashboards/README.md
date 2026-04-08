@@ -14,6 +14,8 @@ The intended local flow is:
 
 If that shell hook is not installed, project-aware dashboard panels can show empty project names. Use the Project Context Health panel to spot missing project attribution.
 
+Tool success metrics measure whether Codex's host actions completed successfully, not whether the overall task was solved. For example, `exec_command success=false` usually means the command returned a non-zero exit status, was denied, was aborted, or failed to execute; `apply_patch success=false` usually means the patch did not apply. These failures can still be useful when Codex is probing the environment or testing an assumption.
+
 Logs are still best explored in SigNoz's built-in Logs UI. Add columns for:
 - `attributes_string['event.name']`
 - `attributes_string['event.kind']`

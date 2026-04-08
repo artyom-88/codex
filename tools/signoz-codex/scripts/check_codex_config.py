@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import argparse
-import sys
 import tomllib
 from pathlib import Path
 from typing import Any
+
+from docker_runtime import expected_otlp_endpoint
 
 GREEN = "\033[0;32m"
 YELLOW = "\033[1;33m"
@@ -14,11 +15,6 @@ RESET = "\033[0m"
 
 CONFIG_PATH = Path.home() / ".codex" / "config.toml"
 EXAMPLE_PATH = Path(__file__).resolve().parents[1] / "examples" / "codex-otel.example.toml"
-SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
-
-from docker_runtime import expected_otlp_endpoint
 
 
 def ok(message: str, quiet: bool) -> None:
@@ -123,7 +119,7 @@ def main() -> int:
             print("")
             print("Recommended OTEL snippet:")
             print("")
-            print(f"[otel]")
+            print("[otel]")
             print("log_user_prompt = false")
             print(f"exporter = {{ otlp-grpc = {{ endpoint = {endpoint!r} }} }}")
             print(f"trace_exporter = {{ otlp-grpc = {{ endpoint = {endpoint!r} }} }}")

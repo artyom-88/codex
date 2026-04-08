@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -10,13 +9,16 @@ USERS_XML_PATH = Path(__file__).resolve().parents[1] / "common" / "clickhouse" /
 
 class ClickHouseUsersConfigTests(unittest.TestCase):
     def test_codex_readonly_user_declares_an_authentication_method(self) -> None:
-        root = ET.parse(USERS_XML_PATH).getroot()
-        user = root.find("./users/codex_readonly")
+        xml_text = USERS_XML_PATH.read_text(encoding="utf-8")
+        user_start = xml_text.find("<codex_readonly>")
+        user_end = xml_text.find("</codex_readonly>")
 
-        self.assertIsNotNone(user, "codex_readonly user must exist")
+        self.assertGreaterEqual(user_start, 0, "codex_readonly user must exist")
+        self.assertGreater(user_end, user_start, "codex_readonly user must have a closing tag")
+        user_xml = xml_text[user_start:user_end]
         self.assertTrue(
             any(
-                user.find(f"./{tag}") is not None
+                f"<{tag}>" in user_xml or f"<{tag}/>" in user_xml
                 for tag in (
                     "password",
                     "password_sha256_hex",

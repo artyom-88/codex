@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
+import shutil
+import subprocess  # nosec B404
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
@@ -12,6 +13,7 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yaml"
 PROJECT_NAME = "signoz-codex"
 DEFAULT_BIND_ADDR = "127.0.0.1"
+DOCKER_BIN = shutil.which("docker") or "docker"
 
 
 def load_local_runtime_env() -> None:
@@ -52,6 +54,8 @@ def remote_bind_mounts(remote_assets_root: Path) -> dict[str, Path]:
 
 
 @dataclass(frozen=True)
+# RuntimeConfig intentionally keeps the resolved runtime values together so callers can pass one object around.
+# pylint: disable-next=too-many-instance-attributes
 class RuntimeConfig:
     docker_context: str
     docker_context_source: str
@@ -74,11 +78,11 @@ class RuntimeConfig:
 
 def _run_docker(*args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["docker", *args],
+        [DOCKER_BIN, *args],
         check=False,
         text=True,
         capture_output=True,
-    )
+    )  # nosec B603
 
 
 def current_docker_context() -> str:
@@ -150,13 +154,13 @@ def resolve_runtime() -> RuntimeConfig:
 
     stack_host_override = os.environ.get("SIGNOZ_CODEX_STACK_HOST", "").strip()
     if stack_host_override:
-        stack_host = stack_host_override
+        resolved_stack_host = stack_host_override
     elif engine_mode == "local":
-        stack_host = "localhost"
+        resolved_stack_host = "localhost"
     else:
-        stack_host = endpoint_host(endpoint) or "localhost"
+        resolved_stack_host = endpoint_host(endpoint) or "localhost"
 
-    otlp_endpoint = os.environ.get("SIGNOZ_CODEX_OTLP_ENDPOINT", "").strip() or f"http://{stack_host}:5317"
+    otlp_endpoint = os.environ.get("SIGNOZ_CODEX_OTLP_ENDPOINT", "").strip() or f"http://{resolved_stack_host}:5317"
     remote_asset_sync_cmd = os.environ.get("SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD", "").strip()
     remote_assets_root = Path(os.environ.get("SIGNOZ_CODEX_REMOTE_ASSETS_ROOT", "/srv/signoz-codex"))
     bind_addr = os.environ.get("SIGNOZ_CODEX_BIND_ADDR", "").strip() or DEFAULT_BIND_ADDR
@@ -169,7 +173,7 @@ def resolve_runtime() -> RuntimeConfig:
         remote_assets_root=remote_assets_root,
         remote_asset_sync_cmd=remote_asset_sync_cmd,
         bind_addr=bind_addr,
-        stack_host=stack_host,
+        stack_host=resolved_stack_host,
         otlp_endpoint=otlp_endpoint,
     )
 
@@ -184,7 +188,7 @@ def stack_host(runtime: RuntimeConfig | None = None) -> str:
 
 def docker_args(*args: str, runtime: RuntimeConfig | None = None) -> list[str]:
     active_runtime = runtime or resolve_runtime()
-    return ["docker", "--context", active_runtime.docker_context, *args]
+    return [DOCKER_BIN, "--context", active_runtime.docker_context, *args]
 
 
 def compose_args(*args: str, runtime: RuntimeConfig | None = None) -> list[str]:

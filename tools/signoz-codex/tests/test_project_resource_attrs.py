@@ -1,48 +1,46 @@
 from __future__ import annotations
 
-import importlib.util
-import subprocess
 import tempfile
 import unittest
 from collections import OrderedDict
 from pathlib import Path
+from unittest import mock
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "project_resource_attrs.py"
-SPEC = importlib.util.spec_from_file_location("project_resource_attrs", MODULE_PATH)
-MODULE = importlib.util.module_from_spec(SPEC)
-assert SPEC and SPEC.loader
-SPEC.loader.exec_module(MODULE)
+from test_support import load_script_module
+
+MODULE = load_script_module("project_resource_attrs", "project_resource_attrs.py")
 
 
 class ProjectResourceAttrsTests(unittest.TestCase):
     def test_parse_and_serialize_round_trip_with_escaping(self) -> None:
-        raw = r"env=dev,project.name=old\,name,project.path=/tmp/with\=equals,other=two\\three"
+        sample_path = Path("sample") / "with=equals"
+        raw = rf"env=dev,project.name=old\,name,project.path={sample_path},other=two\\three"
         parsed = MODULE.parse_resource_attributes(raw)
         self.assertEqual(parsed["env"], "dev")
         self.assertEqual(parsed["project.name"], "old,name")
-        self.assertEqual(parsed["project.path"], "/tmp/with=equals")
+        self.assertEqual(parsed["project.path"], str(sample_path))
         self.assertEqual(parsed["other"], r"two\three")
         self.assertEqual(MODULE.parse_resource_attributes(MODULE.serialize_resource_attributes(parsed)), parsed)
 
     def test_merge_resource_attributes_replaces_managed_keys_only(self) -> None:
         merged = MODULE.merge_resource_attributes(
-            "env=dev,project.name=old,project.path=/tmp/old,vcs.repository.name=oldrepo",
+            "env=dev,project.name=old,project.path=old-path,vcs.repository.name=oldrepo",
             OrderedDict(
                 (
                     ("project.name", "new"),
-                    ("project.path", "/tmp/new"),
+                    ("project.path", "new-path"),
                 )
             ),
         )
-        self.assertEqual(merged, "env=dev,project.name=new,project.path=/tmp/new")
+        self.assertEqual(merged, "env=dev,project.name=new,project.path=new-path")
 
     def test_build_managed_attributes_prefers_git_repo(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_root = Path(temp_dir) / "repo"
             nested = repo_root / "nested"
             nested.mkdir(parents=True)
-            subprocess.run(["git", "init", str(repo_root)], check=True, capture_output=True, text=True)
-            managed = MODULE.build_managed_attributes(nested, Path(temp_dir) / "missing.toml")
+            with mock.patch.object(MODULE, "git_repo_root", return_value=repo_root.resolve()):
+                managed = MODULE.build_managed_attributes(nested, Path(temp_dir) / "missing.toml")
             self.assertEqual(
                 managed,
                 OrderedDict(
@@ -84,7 +82,7 @@ class ProjectResourceAttrsTests(unittest.TestCase):
 
     def test_merge_resource_attributes_removes_stale_managed_keys_when_no_project(self) -> None:
         merged = MODULE.merge_resource_attributes(
-            "env=dev,project.name=old,project.path=/tmp/old,vcs.repository.name=oldrepo",
+            "env=dev,project.name=old,project.path=old-path,vcs.repository.name=oldrepo",
             OrderedDict(),
         )
         self.assertEqual(merged, "env=dev")

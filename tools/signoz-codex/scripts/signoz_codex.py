@@ -3,17 +3,15 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import socket
-import subprocess
+import subprocess  # nosec B404
 import sys
 import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-
-SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
+from urllib.parse import urlparse
 
 from docker_runtime import (
     PROJECT_ROOT,
@@ -26,6 +24,8 @@ from docker_runtime import (
     stack_host,
 )
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+DOCKER_BIN = shutil.which("docker") or "docker"
 REQUIRED_SERVICES = ("clickhouse", "zookeeper-1", "signoz", "otel-collector")
 CONFIG_CHECK_SCRIPT = SCRIPT_DIR / "check_codex_config.py"
 VERIFY_SCRIPT = SCRIPT_DIR / "verify_codex_telemetry.py"
@@ -61,7 +61,7 @@ def run_compose(
         text=True,
         capture_output=capture_output,
         env=compose_environment(runtime=runtime),
-    )
+    )  # nosec B603
 
 
 def run_local_script(script_path: Path, *args: str, check: bool = False) -> subprocess.CompletedProcess[str]:
@@ -70,7 +70,7 @@ def run_local_script(script_path: Path, *args: str, check: bool = False) -> subp
         check=check,
         text=True,
         capture_output=True,
-    )
+    )  # nosec B603
 
 
 def emit_script_result(result: subprocess.CompletedProcess[str]) -> None:
@@ -82,18 +82,23 @@ def emit_script_result(result: subprocess.CompletedProcess[str]) -> None:
 
 def check_docker(runtime: RuntimeConfig) -> None:
     try:
-        subprocess.run(["docker", "--version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            [DOCKER_BIN, "--version"],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )  # nosec B603
     except FileNotFoundError as exc:
         raise SystemExit("Docker is not installed or not in PATH") from exc
     except subprocess.CalledProcessError as exc:
         raise SystemExit("Docker CLI is installed but not working correctly") from exc
 
     context_result = subprocess.run(
-        ["docker", "context", "inspect", runtime.docker_context],
+        [DOCKER_BIN, "context", "inspect", runtime.docker_context],
         check=False,
         text=True,
         capture_output=True,
-    )
+    )  # nosec B603
     if context_result.returncode != 0:
         raise SystemExit(f"Docker context {runtime.docker_context!r} is not available")
 
@@ -102,7 +107,7 @@ def check_docker(runtime: RuntimeConfig) -> None:
         check=False,
         text=True,
         capture_output=True,
-    )
+    )  # nosec B603
     if docker_result.returncode != 0:
         raise SystemExit(f"Docker context {runtime.docker_context!r} is not reachable")
 
@@ -112,21 +117,31 @@ def check_docker(runtime: RuntimeConfig) -> None:
         text=True,
         capture_output=True,
         env=compose_environment(runtime=runtime),
-    )
+    )  # nosec B603
     if compose_result.returncode != 0:
         raise SystemExit("docker compose is not available for the selected Docker context")
 
 
 def unsupported_remote_assets_message(runtime: RuntimeConfig) -> str:
     lines = [
-        f"The active Docker context {runtime.docker_context!r} uses a remote engine ({runtime.docker_endpoint or 'unknown endpoint'}).",
-        "This stack relies on bind-mounted config files, so remote engines need an explicit asset-sync command before compose startup.",
-        "Set SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD to a local command that copies this project's runtime assets to the remote host.",
+        (
+            f"The active Docker context {runtime.docker_context!r} uses a remote engine "
+            f"({runtime.docker_endpoint or 'unknown endpoint'})."
+        ),
+        (
+            "This stack relies on bind-mounted config files, so remote engines need an explicit "
+            "asset-sync command before compose startup."
+        ),
+        (
+            "Set SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD to a local command that copies this project's "
+            "runtime assets to the remote host."
+        ),
     ]
     if runtime.stack_host != "localhost":
         lines.append(f"Configured stack host: {runtime.stack_host}")
     lines.append(
-        "The remote sync command should write files into SIGNOZ_CODEX_REMOTE_ASSETS_ROOT so the compose bind mounts resolve on the remote engine."
+        "The remote sync command should write files into SIGNOZ_CODEX_REMOTE_ASSETS_ROOT so the compose "
+        "bind mounts resolve on the remote engine."
     )
     return "\n".join(lines)
 
@@ -146,7 +161,7 @@ def ensure_runtime_assets(runtime: RuntimeConfig, *, required: bool) -> bool:
         text=True,
         capture_output=True,
         env=os.environ.copy(),
-    )
+    )  # nosec B603
     if result.returncode != 0:
         output = result.stderr.strip() or result.stdout.strip() or "remote asset sync command failed"
         raise SystemExit(output)
@@ -244,7 +259,7 @@ def show_logs(runtime: RuntimeConfig, service: str | None) -> int:
         compose_args(*args, runtime=runtime),
         check=False,
         env=compose_environment(runtime=runtime),
-    ).returncode
+    ).returncode  # nosec B603
 
 
 def cleanup(runtime: RuntimeConfig) -> int:
@@ -268,8 +283,11 @@ def purge(runtime: RuntimeConfig) -> int:
 
 
 def _check_http_health(runtime: RuntimeConfig) -> bool:
+    health_url = f"http://{stack_host(runtime)}:8105/api/v1/health"
+    if urlparse(health_url).scheme not in {"http", "https"}:
+        return False
     try:
-        with urllib.request.urlopen(f"http://{stack_host(runtime)}:8105/api/v1/health", timeout=5) as response:
+        with urllib.request.urlopen(health_url, timeout=5) as response:  # nosec B310
             return 200 <= response.status < 300
     except (urllib.error.URLError, TimeoutError):
         return False
@@ -287,16 +305,32 @@ def health_check(runtime: RuntimeConfig) -> int:
     print()
 
     clickhouse_ok = subprocess.run(
-        compose_args("exec", "-T", "clickhouse", "clickhouse-client", "--query=SELECT 1", runtime=runtime),
+        compose_args(
+            "exec",
+            "-T",
+            "clickhouse",
+            "clickhouse-client",
+            "--query=SELECT 1",
+            runtime=runtime,
+        ),
         check=False,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         env=compose_environment(runtime=runtime),
-    ).returncode == 0
+    ).returncode == 0  # nosec B603
     print(f"  {(GREEN + '✓' + RESET) if clickhouse_ok else (RED + '✗' + RESET)} ClickHouse")
-    print(f"  {(GREEN + '✓' + RESET) if _check_http_health(runtime) else (YELLOW + '!' + RESET)} SigNoz UI on {host}:8105")
-    print(f"  {(GREEN + '✓' + RESET) if _check_port(runtime, 5317) else (YELLOW + '!' + RESET)} OTLP gRPC on {host}:5317")
-    print(f"  {(GREEN + '✓' + RESET) if _check_port(runtime, 5318) else (YELLOW + '!' + RESET)} OTLP HTTP on {host}:5318")
+    print(
+        f"  {(GREEN + '✓' + RESET) if _check_http_health(runtime) else (YELLOW + '!' + RESET)} "
+        f"SigNoz UI on {host}:8105"
+    )
+    print(
+        f"  {(GREEN + '✓' + RESET) if _check_port(runtime, 5317) else (YELLOW + '!' + RESET)} "
+        f"OTLP gRPC on {host}:5317"
+    )
+    print(
+        f"  {(GREEN + '✓' + RESET) if _check_port(runtime, 5318) else (YELLOW + '!' + RESET)} "
+        f"OTLP HTTP on {host}:5318"
+    )
     return 0
 
 
@@ -380,9 +414,19 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("health")
     subparsers.add_parser("config")
     verify_parser = subparsers.add_parser("verify")
-    verify_parser.add_argument("--minutes", type=int, default=30, help="Look back this many minutes for native Codex telemetry")
+    verify_parser.add_argument(
+        "--minutes",
+        type=int,
+        default=30,
+        help="Look back this many minutes for native Codex telemetry",
+    )
     doctor_parser = subparsers.add_parser("doctor")
-    doctor_parser.add_argument("--minutes", type=int, default=30, help="Look back this many minutes for native Codex telemetry")
+    doctor_parser.add_argument(
+        "--minutes",
+        type=int,
+        default=30,
+        help="Look back this many minutes for native Codex telemetry",
+    )
 
     sql_parser = subparsers.add_parser("sql")
     sql_parser.add_argument("query", nargs='?')
@@ -402,6 +446,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # pylint: disable=too-many-branches
     parser = build_parser()
     args = parser.parse_args(argv)
     command = args.command or 'start'

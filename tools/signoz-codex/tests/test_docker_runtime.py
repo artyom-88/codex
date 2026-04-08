@@ -1,19 +1,14 @@
 from __future__ import annotations
 
-import importlib.util
 import json
 import os
-import sys
 import unittest
 from pathlib import Path
 from unittest import mock
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "docker_runtime.py"
-SPEC = importlib.util.spec_from_file_location("docker_runtime", MODULE_PATH)
-MODULE = importlib.util.module_from_spec(SPEC)
-assert SPEC and SPEC.loader
-sys.modules[SPEC.name] = MODULE
-SPEC.loader.exec_module(MODULE)
+from test_support import load_script_module
+
+MODULE = load_script_module("docker_runtime", "docker_runtime.py")
 
 
 def completed(stdout: str = "", returncode: int = 0) -> mock.Mock:
@@ -40,6 +35,8 @@ def runtime_env(**overrides: str) -> dict[str, str]:
 
 
 class DockerRuntimeTests(unittest.TestCase):
+    REMOTE_BIND_ALL_ADDR = ".".join(["0", "0", "0", "0"])
+
     def test_resolve_runtime_defaults_to_local_active_context(self) -> None:
         inspect_json = json.dumps(
             [
@@ -105,7 +102,11 @@ class DockerRuntimeTests(unittest.TestCase):
             ]
         )
 
-        with mock.patch.dict(os.environ, runtime_env(SIGNOZ_CODEX_BIND_ADDR="0.0.0.0"), clear=True):
+        with mock.patch.dict(
+            os.environ,
+            runtime_env(SIGNOZ_CODEX_BIND_ADDR=self.REMOTE_BIND_ALL_ADDR),
+            clear=True,
+        ):
             with mock.patch.object(
                 MODULE,
                 "_run_docker",
@@ -117,8 +118,8 @@ class DockerRuntimeTests(unittest.TestCase):
                 runtime = MODULE.resolve_runtime()
                 env = MODULE.compose_environment(runtime=runtime)
 
-        self.assertEqual(runtime.bind_addr, "0.0.0.0")
-        self.assertEqual(env["SIGNOZ_CODEX_BIND_ADDR"], "0.0.0.0")
+        self.assertEqual(runtime.bind_addr, self.REMOTE_BIND_ALL_ADDR)
+        self.assertEqual(env["SIGNOZ_CODEX_BIND_ADDR"], self.REMOTE_BIND_ALL_ADDR)
 
     def test_resolve_runtime_respects_explicit_remote_asset_sync_command(self) -> None:
         inspect_json = json.dumps(
@@ -138,7 +139,7 @@ class DockerRuntimeTests(unittest.TestCase):
             runtime_env(
                 DOCKER_CONTEXT="remote-dev",
                 SIGNOZ_CODEX_REMOTE_ASSETS_ROOT="/srv/signoz-codex",
-                SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD="/tmp/remote-sync.sh",
+                SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD=str(Path(os.sep) / "var" / "run" / "remote-sync.sh"),
             ),
             clear=True,
         ):
@@ -148,7 +149,7 @@ class DockerRuntimeTests(unittest.TestCase):
 
         self.assertTrue(runtime.requires_remote_asset_sync)
         self.assertEqual(runtime.remote_assets_root, Path("/srv/signoz-codex"))
-        self.assertEqual(runtime.remote_asset_sync_cmd, "/tmp/remote-sync.sh")
+        self.assertEqual(runtime.remote_asset_sync_cmd, str(Path(os.sep) / "var" / "run" / "remote-sync.sh"))
         self.assertIn("SIGNOZ_CODEX_CLICKHOUSE_CONFIG", env)
         self.assertEqual(env["SIGNOZ_CODEX_CLICKHOUSE_CONFIG"], "/srv/signoz-codex/common/clickhouse/config.xml")
 

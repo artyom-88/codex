@@ -1,18 +1,12 @@
 from __future__ import annotations
 
 import contextlib
-import importlib.util
 import io
-import sys
 import unittest
-from pathlib import Path
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "verify_codex_telemetry.py"
-SPEC = importlib.util.spec_from_file_location("verify_codex_telemetry", MODULE_PATH)
-MODULE = importlib.util.module_from_spec(SPEC)
-assert SPEC and SPEC.loader
-sys.modules[SPEC.name] = MODULE
-SPEC.loader.exec_module(MODULE)
+from test_support import load_script_module
+
+MODULE = load_script_module("verify_codex_telemetry", "verify_codex_telemetry.py")
 
 
 class VerifyCodexTelemetryTests(unittest.TestCase):
