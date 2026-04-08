@@ -17,6 +17,7 @@ from docker_runtime import (
     PROJECT_ROOT,
     RuntimeConfig,
     bind_addr_is_loopback,
+    clickhouse_credentials,
     compose_args,
     compose_environment,
     docker_args,
@@ -324,6 +325,7 @@ def _check_port(runtime: RuntimeConfig, port: int) -> bool:
 
 def health_check(runtime: RuntimeConfig) -> int:
     host = stack_host(runtime)
+    credentials = clickhouse_credentials()
     log_info("Checking SigNoz Codex stack health")
     print()
     access_warning = remote_loopback_access_warning(runtime)
@@ -337,6 +339,8 @@ def health_check(runtime: RuntimeConfig) -> int:
             "-T",
             "clickhouse",
             "clickhouse-client",
+            f"--user={credentials.write_user}",
+            f"--password={credentials.write_password}",
             "--query=SELECT 1",
             runtime=runtime,
         ),

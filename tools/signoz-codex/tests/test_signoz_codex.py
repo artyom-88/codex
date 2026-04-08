@@ -14,22 +14,39 @@ MODULE = load_script_module("signoz_codex", "signoz_codex.py")
 class SignozCodexTests(unittest.TestCase):
     def test_health_check_returns_zero_when_all_probes_pass(self) -> None:
         runtime = SimpleNamespace()
+        credentials = SimpleNamespace(write_user="default", write_password="pw")
         with (
             contextlib.redirect_stdout(io.StringIO()),
             mock.patch.object(MODULE, "stack_host", return_value="localhost"),
-            mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]),
+            mock.patch.object(MODULE, "clickhouse_credentials", return_value=credentials),
+            mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]) as compose_args,
             mock.patch.object(MODULE, "compose_environment", return_value={}),
             mock.patch.object(MODULE.subprocess, "run", return_value=SimpleNamespace(returncode=0)),
             mock.patch.object(MODULE, "_check_http_health", return_value=True),
             mock.patch.object(MODULE, "_check_port", side_effect=[True, True]),
         ):
             self.assertEqual(MODULE.health_check(runtime), 0)
+        compose_args.assert_called_once_with(
+            "exec",
+            "-T",
+            "clickhouse",
+            "clickhouse-client",
+            f"--user={credentials.write_user}",
+            f"--password={credentials.write_password}",
+            "--query=SELECT 1",
+            runtime=runtime,
+        )
 
     def test_health_check_returns_nonzero_when_any_probe_fails(self) -> None:
         runtime = SimpleNamespace()
         with (
             contextlib.redirect_stdout(io.StringIO()),
             mock.patch.object(MODULE, "stack_host", return_value="localhost"),
+            mock.patch.object(
+                MODULE,
+                "clickhouse_credentials",
+                return_value=SimpleNamespace(write_user="default", write_password="pw"),
+            ),
             mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]),
             mock.patch.object(MODULE, "compose_environment", return_value={}),
             mock.patch.object(MODULE.subprocess, "run", return_value=SimpleNamespace(returncode=0)),

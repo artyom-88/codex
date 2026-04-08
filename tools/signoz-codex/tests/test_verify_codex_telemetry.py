@@ -3,6 +3,8 @@ from __future__ import annotations
 import contextlib
 import io
 import unittest
+from types import SimpleNamespace
+from unittest import mock
 
 from test_support import load_script_module
 
@@ -27,6 +29,27 @@ class VerifyCodexTelemetryTests(unittest.TestCase):
     def test_parse_count_handles_empty_result(self) -> None:
         self.assertEqual(MODULE.parse_count([]), 0)
         self.assertEqual(MODULE.parse_count(["42"]), 42)
+
+    def test_query_clickhouse_uses_authenticated_client(self) -> None:
+        with (
+            mock.patch.object(
+                MODULE,
+                "clickhouse_credentials",
+                return_value=SimpleNamespace(write_user="default", write_password="pw"),
+            ),
+            mock.patch.object(MODULE, "run_compose", return_value=SimpleNamespace(stdout="1\n")) as run_compose,
+        ):
+            self.assertEqual(MODULE.query_clickhouse("SELECT 1"), ["1"])
+
+        run_compose.assert_called_once_with(
+            "exec",
+            "-T",
+            "clickhouse",
+            "clickhouse-client",
+            "--user=default",
+            "--password=pw",
+            "--query=SELECT 1",
+        )
 
     def test_compose_failure_message_handles_stopped_stack(self) -> None:
         error = MODULE.subprocess.CalledProcessError(
