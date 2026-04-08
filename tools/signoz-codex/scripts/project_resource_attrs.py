@@ -5,9 +5,10 @@ import argparse
 import os
 import shutil
 import subprocess  # nosec B404
-import tomllib
 from collections import OrderedDict
 from pathlib import Path
+
+from toml_compat import TOMLDecodeError, tomllib
 
 CONFIG_PATH = Path.home() / ".codex" / "config.toml"
 GIT_BIN = shutil.which("git") or "git"
@@ -127,7 +128,7 @@ def load_codex_projects(config_path: Path) -> list[Path]:
     try:
         with config_path.open("rb") as handle:
             config = tomllib.load(handle)
-    except (OSError, tomllib.TOMLDecodeError):
+    except (OSError, TOMLDecodeError):
         return []
 
     projects = config.get("projects")

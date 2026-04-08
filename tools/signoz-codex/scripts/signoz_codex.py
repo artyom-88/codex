@@ -318,20 +318,24 @@ def health_check(runtime: RuntimeConfig) -> int:
         stderr=subprocess.DEVNULL,
         env=compose_environment(runtime=runtime),
     ).returncode == 0  # nosec B603
+    http_ok = _check_http_health(runtime)
+    grpc_ok = _check_port(runtime, 5317)
+    http_ingest_ok = _check_port(runtime, 5318)
+
     print(f"  {(GREEN + '✓' + RESET) if clickhouse_ok else (RED + '✗' + RESET)} ClickHouse")
     print(
-        f"  {(GREEN + '✓' + RESET) if _check_http_health(runtime) else (YELLOW + '!' + RESET)} "
+        f"  {(GREEN + '✓' + RESET) if http_ok else (YELLOW + '!' + RESET)} "
         f"SigNoz UI on {host}:8105"
     )
     print(
-        f"  {(GREEN + '✓' + RESET) if _check_port(runtime, 5317) else (YELLOW + '!' + RESET)} "
+        f"  {(GREEN + '✓' + RESET) if grpc_ok else (YELLOW + '!' + RESET)} "
         f"OTLP gRPC on {host}:5317"
     )
     print(
-        f"  {(GREEN + '✓' + RESET) if _check_port(runtime, 5318) else (YELLOW + '!' + RESET)} "
+        f"  {(GREEN + '✓' + RESET) if http_ingest_ok else (YELLOW + '!' + RESET)} "
         f"OTLP HTTP on {host}:5318"
     )
-    return 0
+    return 0 if all((clickhouse_ok, http_ok, grpc_ok, http_ingest_ok)) else 1
 
 
 def check_codex_config() -> int:

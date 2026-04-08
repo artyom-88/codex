@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import argparse
-import tomllib
 from pathlib import Path
 from typing import Any
 
 from docker_runtime import expected_otlp_endpoint
+from toml_compat import TOMLDecodeError, tomllib
 
 GREEN = "\033[0;32m"
 YELLOW = "\033[1;33m"
@@ -89,7 +89,7 @@ def main() -> int:
     try:
         with CONFIG_PATH.open("rb") as handle:
             config = tomllib.load(handle)
-    except tomllib.TOMLDecodeError as exc:
+    except TOMLDecodeError as exc:
         error(f"Failed to parse {CONFIG_PATH}: {exc}", quiet)
         return 1
 

@@ -14,6 +14,22 @@ class QueryClickhouseTests(unittest.TestCase):
         query = "SELECT 1 FORMAT Vertical"
         self.assertEqual(MODULE.apply_output_format(query, "TSV"), query)
 
+    def test_apply_output_format_ignores_format_in_string_literal(self) -> None:
+        query = "SELECT 'FORMAT' AS label"
+        self.assertEqual(MODULE.apply_output_format(query, "TSV"), "SELECT 'FORMAT' AS label FORMAT TSV")
+
+    def test_apply_output_format_ignores_format_in_comment(self) -> None:
+        query = "SELECT 1 /* FORMAT TSV */"
+        self.assertEqual(
+            MODULE.apply_output_format(query, "JSONEachRow"),
+            "SELECT 1 /* FORMAT TSV */ FORMAT JSONEachRow",
+        )
+
+    def test_has_trailing_top_level_format_clause_requires_terminal_clause(self) -> None:
+        self.assertTrue(MODULE.has_trailing_top_level_format_clause("SELECT 1 FORMAT Vertical"))
+        self.assertFalse(MODULE.has_trailing_top_level_format_clause("SELECT format FROM metrics"))
+        self.assertFalse(MODULE.has_trailing_top_level_format_clause("SELECT 'FORMAT' AS label"))
+
     def test_apply_output_format_appends_format(self) -> None:
         self.assertEqual(MODULE.apply_output_format("SELECT 1;", "TSV"), "SELECT 1 FORMAT TSV")
 

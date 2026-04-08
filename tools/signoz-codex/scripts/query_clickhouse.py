@@ -2,14 +2,12 @@
 from __future__ import annotations
 
 import argparse
-import re
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
 from docker_runtime import compose_args, compose_environment
 
-FORMAT_PATTERN = re.compile(r"\bFORMAT\b", re.IGNORECASE)
 READONLY_USER = "codex_readonly"
 READ_ONLY_START_KEYWORDS = frozenset({"SELECT", "SHOW", "DESCRIBE", "DESC", "EXPLAIN", "EXISTS"})
 WRITE_START_KEYWORDS = frozenset(
@@ -76,9 +74,127 @@ def load_query(args: argparse.Namespace) -> str:
 
 
 def apply_output_format(query: str, output_format: str | None) -> str:
-    if not output_format or FORMAT_PATTERN.search(query):
+    if not output_format or has_trailing_top_level_format_clause(query):
         return query
     return f"{query.rstrip().rstrip(';')} FORMAT {output_format}"
+
+
+def _next_char(text: str, index: int) -> str:
+    return text[index + 1] if index + 1 < len(text) else ""
+
+
+def _consume_line_comment(text: str, index: int) -> int:
+    while index < len(text) and text[index] != "\n":
+        index += 1
+    return index
+
+
+def _consume_block_comment(text: str, index: int) -> int:
+    while index + 1 < len(text):
+        if text[index] == "*" and text[index + 1] == "/":
+            return index + 2
+        index += 1
+    return len(text)
+
+
+def _consume_single_quoted_text(text: str, index: int) -> int:
+    while index < len(text):
+        char = text[index]
+        next_char = _next_char(text, index)
+        if char == "\\" and next_char:
+            index += 2
+            continue
+        if char == "'" and next_char == "'":
+            index += 2
+            continue
+        index += 1
+        if char == "'":
+            return index
+    return index
+
+
+def _consume_double_quoted_text(text: str, index: int) -> int:
+    while index < len(text):
+        char = text[index]
+        next_char = _next_char(text, index)
+        if char == "\\" and next_char:
+            index += 2
+            continue
+        index += 1
+        if char == '"':
+            return index
+    return index
+
+
+def _consume_backtick_quoted_text(text: str, index: int) -> int:
+    while index < len(text):
+        char = text[index]
+        index += 1
+        if char == "`":
+            return index
+    return index
+
+
+def _consume_quoted_text(text: str, index: int, quote: str) -> int:
+    if quote == "'":
+        return _consume_single_quoted_text(text, index)
+    if quote == '"':
+        return _consume_double_quoted_text(text, index)
+    return _consume_backtick_quoted_text(text, index)
+
+
+def _consume_word(text: str, index: int) -> tuple[int, str]:
+    start = index
+    index += 1
+    while index < len(text):
+        char = text[index]
+        if char != "_" and not char.isalnum():
+            break
+        index += 1
+    return index, text[start:index].upper()
+
+
+def top_level_words(text: str) -> list[str]:
+    words: list[str] = []
+    depth = 0
+    index = 0
+
+    while index < len(text):
+        char = text[index]
+        next_char = _next_char(text, index)
+
+        if char == "-" and next_char == "-":
+            index = _consume_line_comment(text, index + 2)
+            continue
+        if char == "#":
+            index = _consume_line_comment(text, index + 1)
+            continue
+        if char == "/" and next_char == "*":
+            index = _consume_block_comment(text, index + 2)
+            continue
+        if char in {"'", '"', "`"}:
+            index = _consume_quoted_text(text, index + 1, char)
+            continue
+        if char == "(":
+            depth += 1
+            index += 1
+            continue
+        if char == ")":
+            depth = max(0, depth - 1)
+            index += 1
+            continue
+        if depth == 0 and (char == "_" or char.isalpha()):
+            index, word = _consume_word(text, index)
+            words.append(word)
+            continue
+        index += 1
+
+    return words
+
+
+def has_trailing_top_level_format_clause(query: str) -> bool:
+    words = top_level_words(query)
+    return len(words) >= 2 and words[-2] == "FORMAT"
 
 
 def split_sql_statements(text: str) -> list[str]:
@@ -202,113 +318,7 @@ def split_sql_statements(text: str) -> list[str]:
 
 
 def iter_top_level_keywords(text: str) -> list[str]:
-    # pylint: disable=too-many-branches,too-many-statements
-    keywords: list[str] = []
-    in_single = False
-    in_double = False
-    in_backtick = False
-    in_line_comment = False
-    in_block_comment = False
-    depth = 0
-    index = 0
-
-    while index < len(text):
-        char = text[index]
-        next_char = text[index + 1] if index + 1 < len(text) else ""
-
-        if in_line_comment:
-            if char == "\n":
-                in_line_comment = False
-            index += 1
-            continue
-
-        if in_block_comment:
-            if char == "*" and next_char == "/":
-                in_block_comment = False
-                index += 2
-                continue
-            index += 1
-            continue
-
-        if in_single:
-            if char == "\\" and next_char:
-                index += 2
-                continue
-            if char == "'" and next_char == "'":
-                index += 2
-                continue
-            if char == "'":
-                in_single = False
-            index += 1
-            continue
-
-        if in_double:
-            if char == "\\" and next_char:
-                index += 2
-                continue
-            if char == '"':
-                in_double = False
-            index += 1
-            continue
-
-        if in_backtick:
-            if char == "`":
-                in_backtick = False
-            index += 1
-            continue
-
-        if char == "-" and next_char == "-":
-            in_line_comment = True
-            index += 2
-            continue
-
-        if char == "#":
-            in_line_comment = True
-            index += 1
-            continue
-
-        if char == "/" and next_char == "*":
-            in_block_comment = True
-            index += 2
-            continue
-
-        if char == "'":
-            in_single = True
-            index += 1
-            continue
-
-        if char == '"':
-            in_double = True
-            index += 1
-            continue
-
-        if char == "`":
-            in_backtick = True
-            index += 1
-            continue
-
-        if char == "(":
-            depth += 1
-            index += 1
-            continue
-
-        if char == ")":
-            depth = max(0, depth - 1)
-            index += 1
-            continue
-
-        if char == "_" or char.isalpha():
-            start = index
-            index += 1
-            while index < len(text) and (text[index] == "_" or text[index].isalnum()):
-                index += 1
-            if depth == 0:
-                keywords.append(text[start:index].upper())
-            continue
-
-        index += 1
-
-    return keywords
+    return top_level_words(text)
 
 
 def is_readonly_statement(statement: str) -> bool:
