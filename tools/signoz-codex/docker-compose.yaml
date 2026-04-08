@@ -71,21 +71,44 @@ services:
       - bash
       - -c
       - |
+        set -euo pipefail
         if [ -f /var/lib/clickhouse/user_scripts/histogramQuantile ]; then
           echo "histogram-binary already exists, skipping download"
           exit 0
         fi
         version="v0.0.1"
+        checksum_file="/etc/clickhouse-histogram-quantile.sha256"
         node_os=$$(uname -s | tr '[:upper:]' '[:lower:]')
-        node_arch=$$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+        node_arch=$$(uname -m)
+        case "$${node_arch}" in
+          aarch64|arm64) node_arch="arm64" ;;
+          x86_64|amd64) node_arch="amd64" ;;
+          *)
+            echo "Unsupported histogram-quantile architecture: $${node_arch}" >&2
+            exit 1
+            ;;
+        esac
+        asset_name="histogram-quantile_$${node_os}_$${node_arch}.tar.gz"
+        asset_url="https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F$${version}/$${asset_name}"
+        expected_checksum=$$(awk '$$2 == asset {print $$1}' asset="$${asset_name}" "$${checksum_file}")
+        if [ -z "$${expected_checksum}" ]; then
+          echo "Missing checksum for $${asset_name} in $${checksum_file}" >&2
+          exit 1
+        fi
+        workdir="/var/lib/clickhouse/user_scripts/.histogram-download"
+        rm -rf "$${workdir}"
+        mkdir -p "$${workdir}"
+        trap 'rm -rf "$${workdir}"' EXIT
         echo "Fetching histogram-binary for $${node_os}/$${node_arch}"
-        cd /tmp
-        wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F$${version}/histogram-quantile_$${node_os}_$${node_arch}.tar.gz"
-        tar -xvzf histogram-quantile.tar.gz
-        mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+        cd "$${workdir}"
+        wget -O "$${asset_name}" "$${asset_url}"
+        printf '%s  %s\n' "$${expected_checksum}" "$${asset_name}" | sha256sum -c -
+        tar -xvzf "$${asset_name}"
+        install -m 0755 histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
     restart: on-failure
     volumes:
       - "${SIGNOZ_CODEX_CLICKHOUSE_USER_SCRIPTS:-./common/clickhouse/user_scripts}:/var/lib/clickhouse/user_scripts/"
+      - "${SIGNOZ_CODEX_CLICKHOUSE_HISTOGRAM_SHA256:-./common/clickhouse/histogram-quantile.sha256}:/etc/clickhouse-histogram-quantile.sha256:ro"
 
   zookeeper-1:
     !!merge <<: *zookeeper-defaults

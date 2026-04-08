@@ -15,6 +15,13 @@ class DockerComposeConfigTests(unittest.TestCase):
         self.assertIn('"${SIGNOZ_CODEX_BIND_ADDR:-127.0.0.1}:5317:4317"', compose)
         self.assertIn('"${SIGNOZ_CODEX_BIND_ADDR:-127.0.0.1}:5318:4318"', compose)
 
+    def test_histogram_helper_download_is_checksum_verified(self) -> None:
+        compose = COMPOSE_PATH.read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", compose)
+        self.assertIn("SIGNOZ_CODEX_CLICKHOUSE_HISTOGRAM_SHA256", compose)
+        self.assertIn("sha256sum -c -", compose)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -14,6 +14,27 @@ YELLOW = "\033[1;33m"
 RED = "\033[0;31m"
 RESET = "\033[0m"
 
+
+def compose_failure_message(process_error: subprocess.CalledProcessError) -> str:
+    output = (process_error.stderr or process_error.stdout or "").strip()
+    lowered = output.lower()
+    if "is not running" in lowered or "no such service" in lowered:
+        return (
+            "SigNoz Codex stack is not running or ClickHouse is unavailable.\n"
+            "Start the stack with ./scripts/signoz-codex start, then retry verify or run ./scripts/signoz-codex doctor."
+        )
+    if "connection refused" in lowered or "timeout" in lowered or "timed out" in lowered:
+        return (
+            "ClickHouse is not reachable yet.\n"
+            "Wait for the stack to finish starting, then rerun ./scripts/signoz-codex verify "
+            "or use ./scripts/signoz-codex health."
+        )
+    return (
+        "Failed to query ClickHouse while verifying native Codex telemetry.\n"
+        "Run ./scripts/signoz-codex health or ./scripts/signoz-codex doctor for stack diagnostics."
+    )
+
+
 def run_compose(*args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         compose_args(*args),
@@ -307,5 +328,9 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except subprocess.CalledProcessError as exc:
-        sys.stderr.write(exc.stderr or str(exc))
+        sys.stderr.write(f"{RED}[ERROR]{RESET} {compose_failure_message(exc)}\n")
+        if exc.stderr:
+            sys.stderr.write(exc.stderr)
+        elif exc.stdout:
+            sys.stderr.write(exc.stdout)
         raise SystemExit(exc.returncode) from exc

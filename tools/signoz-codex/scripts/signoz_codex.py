@@ -341,14 +341,26 @@ def check_codex_config() -> int:
 
 
 def verify_telemetry(minutes: int) -> int:
+    runtime = resolve_runtime()
     config_result = run_local_script(CONFIG_CHECK_SCRIPT)
     emit_script_result(config_result)
     if config_result.returncode != 0:
         return config_result.returncode
 
+    if not are_all_running(runtime):
+        log_error("SigNoz Codex stack is not fully running")
+        log_error("Run ./scripts/signoz-codex start, then retry verify or use ./scripts/signoz-codex doctor")
+        return 1
+
     print("")
     verify_result = run_local_script(VERIFY_SCRIPT, "--minutes", str(minutes))
     emit_script_result(verify_result)
+    if verify_result.returncode != 0:
+        log_warn("Verification failed")
+        log_warn(
+            "Use ./scripts/signoz-codex health for service readiness or "
+            "./scripts/signoz-codex doctor for a full check"
+        )
     return verify_result.returncode
 
 

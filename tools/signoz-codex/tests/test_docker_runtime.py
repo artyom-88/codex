@@ -151,7 +151,12 @@ class DockerRuntimeTests(unittest.TestCase):
         self.assertEqual(runtime.remote_assets_root, Path("/srv/signoz-codex"))
         self.assertEqual(runtime.remote_asset_sync_cmd, str(Path(os.sep) / "var" / "run" / "remote-sync.sh"))
         self.assertIn("SIGNOZ_CODEX_CLICKHOUSE_CONFIG", env)
+        self.assertIn("SIGNOZ_CODEX_CLICKHOUSE_HISTOGRAM_SHA256", env)
         self.assertEqual(env["SIGNOZ_CODEX_CLICKHOUSE_CONFIG"], "/srv/signoz-codex/common/clickhouse/config.xml")
+        self.assertEqual(
+            env["SIGNOZ_CODEX_CLICKHOUSE_HISTOGRAM_SHA256"],
+            "/srv/signoz-codex/common/clickhouse/histogram-quantile.sha256",
+        )
 
     def test_stack_host_override_wins_over_detected_remote_host(self) -> None:
         inspect_json = json.dumps(

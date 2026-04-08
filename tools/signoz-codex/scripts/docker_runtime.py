@@ -46,6 +46,9 @@ def remote_bind_mounts(remote_assets_root: Path) -> dict[str, Path]:
         "SIGNOZ_CODEX_CLICKHOUSE_CONFIG": remote_assets_root / "common" / "clickhouse" / "config.xml",
         "SIGNOZ_CODEX_CLICKHOUSE_USERS": remote_assets_root / "common" / "clickhouse" / "users.xml",
         "SIGNOZ_CODEX_CLICKHOUSE_CUSTOM_FUNCTION": remote_assets_root / "common" / "clickhouse" / "custom-function.xml",
+        "SIGNOZ_CODEX_CLICKHOUSE_HISTOGRAM_SHA256": (
+            remote_assets_root / "common" / "clickhouse" / "histogram-quantile.sha256"
+        ),
         "SIGNOZ_CODEX_CLICKHOUSE_CLUSTER": remote_assets_root / "common" / "clickhouse" / "cluster.xml",
         "SIGNOZ_CODEX_SIGNOZ_PROMETHEUS": remote_assets_root / "common" / "signoz" / "prometheus.yml",
         "SIGNOZ_CODEX_SIGNOZ_COMMON": remote_assets_root / "common" / "signoz",

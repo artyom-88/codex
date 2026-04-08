@@ -11,6 +11,7 @@ from pathlib import Path
 
 CONFIG_PATH = Path.home() / ".codex" / "config.toml"
 GIT_BIN = shutil.which("git") or "git"
+GIT_DISCOVERY_TIMEOUT_SECONDS = 2
 MANAGED_KEYS = ("project.name", "project.path", "vcs.repository.name")
 
 
@@ -108,8 +109,9 @@ def git_repo_root(cwd: Path) -> Path | None:
             check=True,
             text=True,
             capture_output=True,
+            timeout=GIT_DISCOVERY_TIMEOUT_SECONDS,
         )  # nosec B603
-    except (FileNotFoundError, subprocess.CalledProcessError):
+    except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
         return None
 
     output = result.stdout.strip()

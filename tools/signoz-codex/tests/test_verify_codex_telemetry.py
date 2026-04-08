@@ -28,6 +28,28 @@ class VerifyCodexTelemetryTests(unittest.TestCase):
         self.assertEqual(MODULE.parse_count([]), 0)
         self.assertEqual(MODULE.parse_count(["42"]), 42)
 
+    def test_compose_failure_message_handles_stopped_stack(self) -> None:
+        error = MODULE.subprocess.CalledProcessError(
+            returncode=1,
+            cmd=["docker", "compose", "exec"],
+            stderr='service "clickhouse" is not running\n',
+        )
+
+        message = MODULE.compose_failure_message(error)
+        self.assertIn("stack is not running", message)
+        self.assertIn("./scripts/signoz-codex start", message)
+
+    def test_compose_failure_message_handles_connectivity_errors(self) -> None:
+        error = MODULE.subprocess.CalledProcessError(
+            returncode=1,
+            cmd=["docker", "compose", "exec"],
+            stderr="connection refused\n",
+        )
+
+        message = MODULE.compose_failure_message(error)
+        self.assertIn("not reachable yet", message)
+        self.assertIn("./scripts/signoz-codex health", message)
+
 
 if __name__ == "__main__":
     unittest.main()

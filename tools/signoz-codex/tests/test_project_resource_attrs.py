@@ -80,6 +80,14 @@ class ProjectResourceAttrsTests(unittest.TestCase):
                 ),
             )
 
+    def test_git_repo_root_returns_none_when_git_discovery_times_out(self) -> None:
+        with mock.patch.object(
+            MODULE.subprocess,
+            "run",
+            side_effect=MODULE.subprocess.TimeoutExpired(cmd=["git"], timeout=MODULE.GIT_DISCOVERY_TIMEOUT_SECONDS),
+        ):
+            self.assertIsNone(MODULE.git_repo_root(Path.cwd()))
+
     def test_merge_resource_attributes_removes_stale_managed_keys_when_no_project(self) -> None:
         merged = MODULE.merge_resource_attributes(
             "env=dev,project.name=old,project.path=old-path,vcs.repository.name=oldrepo",

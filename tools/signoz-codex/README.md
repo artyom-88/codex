@@ -74,6 +74,8 @@ Generic remote Docker engines are supported for inspection commands, but startin
 
 Keep `SIGNOZ_CODEX_BIND_ADDR` at the default `127.0.0.1` for local use. Set it to `0.0.0.0` only when you intentionally need access from another host and accept exposing local telemetry endpoints on the reachable network.
 
+For remote engines, the synced assets must include the full `common/` tree plus `otel-collector-config.yaml`, because the startup path now verifies the downloaded `histogramQuantile` helper against the tracked checksum manifest in `common/clickhouse/histogram-quantile.sha256`.
+
 ## Using The Examples
 
 ### `examples/codex-otel.example.toml`
@@ -108,6 +110,14 @@ cp ./examples/runtime.env.example ./local/runtime.env
 ```
 
 Edit `./local/runtime.env` and uncomment only the variables you need.
+
+One concrete remote sync example is:
+
+```sh
+rsync -az --delete ./common ./otel-collector-config.yaml docker-host:/srv/signoz-codex/
+```
+
+Then set `SIGNOZ_CODEX_REMOTE_ASSET_SYNC_CMD` to run that command before `start` or `restart`.
 
 The `signoz-codex` Python entrypoint auto-loads `local/runtime.env` if it exists, so no `.zshrc` change is required for runtime overrides.
 
@@ -232,10 +242,24 @@ If project resource attributes are missing, trace-level `attributes_string['cwd'
 - `python3 -m py_compile ./scripts/signoz_codex.py ./scripts/check_codex_config.py ./scripts/verify_codex_telemetry.py ./scripts/query_clickhouse.py ./scripts/project_resource_attrs.py`
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py'`
 
+## Troubleshooting
+
+- `verify` says the stack is not fully running:
+  Run `./scripts/signoz-codex start` and then `./scripts/signoz-codex health` or `./scripts/signoz-codex doctor`.
+- `verify` reports ClickHouse is unavailable:
+  The containers may still be starting. Wait a few seconds and rerun `./scripts/signoz-codex verify`.
+- The UI or OTLP ports are already in use:
+  Stop the conflicting service or override the advertised OTLP endpoint and published bind address with `local/runtime.env`.
+- Project-aware panels are empty:
+  Start a fresh interactive `zsh` after sourcing `project_resource_attrs_hook.zsh`, then launch a new Codex session.
+- Remote Docker start fails before compose comes up:
+  Confirm that your sync command copies `common/` and `otel-collector-config.yaml` into `SIGNOZ_CODEX_REMOTE_ASSETS_ROOT`.
+
 ## Notes
 
 - Cost analytics are intentionally out of scope for this project version.
 - The example OTEL snippet is based on the current local Codex parser behavior and verified against `codex features list`.
+- SigNoz and collector images are pinned intentionally. Upgrade them only after re-running the local validation commands and verifying the dashboard plus `verify` output against a fresh stack.
 - Start with `dashboards/codex-native-dashboard.json` for native Codex telemetry.
 - If a native Codex metric you care about is missing from the dashboard, inspect it first in SigNoz Services or via `./scripts/signoz-codex sql-read` and then extend the dashboard query set.
 - `./scripts/signoz-codex check-config` validates `~/.codex/config.toml` before you start or verify the stack.
