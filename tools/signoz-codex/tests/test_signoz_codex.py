@@ -85,6 +85,25 @@ class SignozCodexTests(unittest.TestCase):
         ):
             self.assertEqual(MODULE.start_services(runtime, force=False), 0)
 
+    def test_start_services_force_recreates_when_remote_assets_refresh(self) -> None:
+        runtime = SimpleNamespace()
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            mock.patch.object(
+                MODULE,
+                "run_local_script",
+                return_value=SimpleNamespace(returncode=0, stdout="", stderr=""),
+            ),
+            mock.patch.object(MODULE, "ensure_runtime_assets", side_effect=[True, True]),
+            mock.patch.object(MODULE, "are_all_running", side_effect=[False, True, True]),
+            mock.patch.object(MODULE, "run_compose") as run_compose,
+            mock.patch.object(MODULE, "show_status", return_value=0),
+            mock.patch.object(MODULE.time, "sleep"),
+        ):
+            self.assertEqual(MODULE.start_services(runtime, force=False), 0)
+
+        run_compose.assert_called_once_with(runtime, "up", "-d", "--force-recreate")
+
 
 if __name__ == "__main__":
     unittest.main()

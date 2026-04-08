@@ -29,6 +29,7 @@ class DockerComposeConfigTests(unittest.TestCase):
 
         self.assertIn("SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=${SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN:?}", compose)
         self.assertIn("--dsn=${SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN:?}", compose)
+        self.assertIn("SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN=${SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN:?}", compose)
 
 
 if __name__ == "__main__":

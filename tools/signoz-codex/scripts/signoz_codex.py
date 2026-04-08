@@ -246,7 +246,10 @@ def start_services(runtime: RuntimeConfig, force: bool) -> int:
     ensure_runtime_assets(runtime, required=True)
 
     log_info("Starting SigNoz Codex stack")
-    run_compose(runtime, "up", "-d")
+    up_args = ["up", "-d"]
+    if assets_refreshed:
+        up_args.append("--force-recreate")
+    run_compose(runtime, *up_args)
     log_info("Waiting for core services")
     waited = 0
     while waited < 90:
