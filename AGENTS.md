@@ -49,6 +49,7 @@ Use this file for global routing and defaults, not detailed task guidance.
 - `instructions/workflow/github.md` contains GitHub branch and pull request workflow defaults. Load only when GitHub workflow work is relevant.
 - `instructions/workflow/safety.md` contains guidance for destructive actions, user-owned changes, and remote-affecting steps. Load only when the task has operational risk.
 - `instructions/workflow/skills.md` contains skill provenance and maintenance guidance. Load only when skill work is relevant.
+- `instructions/languages/python.md` contains lazy-loaded Python coding guidance for analyzer-friendly patterns and post-edit verification. Load only when Python files or Python CI/tooling are involved.
 - `instructions/tasks/debugging.md` contains debugging guidance for reproducing failures and isolating root causes. Load only for debugging work.
 - `instructions/tasks/planning.md` contains planning guidance for turning goals into implementation-ready steps. Load only when planning is the primary task.
 - `instructions/tasks/review.md` contains review guidance focused on findings, regressions, and verification gaps. Load only for review requests.

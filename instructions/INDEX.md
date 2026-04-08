@@ -12,6 +12,12 @@ These live under `instructions/workflow/` and are for general execution and comm
 - [safety.md](workflow/safety.md): Guidance for destructive actions, user-owned changes, and remote-affecting steps. (Load only when the task has operational risk.)
 - [skills.md](workflow/skills.md): Skill provenance and maintenance guidance. (Load only when skill work is relevant.)
 
+## Languages
+
+These live under `instructions/languages/` and are for language-specific guidance.
+
+- [python.md](languages/python.md): Python coding guidance for analyzer-friendly patterns, test fixtures, and targeted verification. (Load only when Python files or Python CI/tooling are involved.)
+
 ## Tasks
 
 These live under `instructions/tasks/` and are for specific task-oriented guidance.
