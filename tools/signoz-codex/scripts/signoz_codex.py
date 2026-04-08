@@ -177,6 +177,7 @@ def ensure_runtime_assets(runtime: RuntimeConfig, *, required: bool) -> bool:
         text=True,
         capture_output=True,
         env=os.environ.copy(),
+        cwd=PROJECT_ROOT,
     )  # nosec B603
     if result.returncode != 0:
         output = result.stderr.strip() or result.stdout.strip() or "remote asset sync command failed"

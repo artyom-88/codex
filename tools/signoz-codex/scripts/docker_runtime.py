@@ -186,7 +186,21 @@ def _quote_env_value(value: str) -> str:
 def _write_file_if_changed(path: Path, content: str) -> None:
     if path.exists() and path.read_text(encoding="utf-8") == content:
         return
-    path.write_text(content, encoding="utf-8")
+    # Write with restrictive permissions and atomically replace to avoid exposing secrets
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    fd = os.open(str(tmp_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(content)
+        os.replace(tmp_path, path)
+        os.chmod(path, 0o600)
+    finally:
+        # If something went wrong before replace, ensure temp file doesn't linger
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
 
 
 def _sha256_hex(value: str) -> str:
