@@ -235,7 +235,10 @@ def start_services(runtime: RuntimeConfig, force: bool) -> int:
         time.sleep(2)
         waited += 2
     print()
-    return show_status(runtime)
+    status_rc = show_status(runtime)
+    if not are_all_running(runtime):
+        return 1
+    return status_rc
 
 
 def stop_services(runtime: RuntimeConfig) -> int:

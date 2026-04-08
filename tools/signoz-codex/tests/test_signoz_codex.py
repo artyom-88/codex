@@ -49,6 +49,40 @@ class SignozCodexTests(unittest.TestCase):
             self.assertEqual(MODULE.doctor(runtime, minutes=30), 1)
         verify_telemetry.assert_not_called()
 
+    def test_start_services_returns_nonzero_when_services_remain_unhealthy(self) -> None:
+        runtime = SimpleNamespace()
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            mock.patch.object(
+                MODULE,
+                "run_local_script",
+                return_value=SimpleNamespace(returncode=0, stdout="", stderr=""),
+            ),
+            mock.patch.object(MODULE, "ensure_runtime_assets", return_value=False),
+            mock.patch.object(MODULE, "are_all_running", return_value=False),
+            mock.patch.object(MODULE, "run_compose"),
+            mock.patch.object(MODULE, "show_status", return_value=0),
+            mock.patch.object(MODULE.time, "sleep"),
+        ):
+            self.assertEqual(MODULE.start_services(runtime, force=False), 1)
+
+    def test_start_services_returns_status_code_when_services_become_healthy(self) -> None:
+        runtime = SimpleNamespace()
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            mock.patch.object(
+                MODULE,
+                "run_local_script",
+                return_value=SimpleNamespace(returncode=0, stdout="", stderr=""),
+            ),
+            mock.patch.object(MODULE, "ensure_runtime_assets", return_value=False),
+            mock.patch.object(MODULE, "are_all_running", side_effect=[False, False, True, True]),
+            mock.patch.object(MODULE, "run_compose"),
+            mock.patch.object(MODULE, "show_status", return_value=0),
+            mock.patch.object(MODULE.time, "sleep"),
+        ):
+            self.assertEqual(MODULE.start_services(runtime, force=False), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

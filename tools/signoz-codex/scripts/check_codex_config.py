@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from docker_runtime import expected_otlp_endpoint
 from toml_compat import TOMLDecodeError, tomllib
@@ -42,11 +43,57 @@ def extract_otlp_endpoint(raw: Any) -> str | None:
     return endpoint if isinstance(endpoint, str) else None
 
 
+def normalize_otlp_endpoint(endpoint: str) -> str:
+    candidate = endpoint.strip()
+    parsed = urlparse(candidate)
+    if not parsed.scheme or not parsed.netloc:
+        return candidate
+
+    try:
+        port = parsed.port
+    except ValueError:
+        return candidate
+
+    hostname = parsed.hostname or ""
+    normalized_host = hostname.lower()
+    if normalized_host in {"127.0.0.1", "::1", "localhost"}:
+        normalized_host = "localhost"
+
+    userinfo = ""
+    if parsed.username:
+        userinfo = parsed.username
+        if parsed.password:
+            userinfo = f"{userinfo}:{parsed.password}"
+        userinfo = f"{userinfo}@"
+
+    netloc = normalized_host
+    if ":" in netloc and not netloc.startswith("["):
+        netloc = f"[{netloc}]"
+    if port is not None:
+        netloc = f"{netloc}:{port}"
+    netloc = f"{userinfo}{netloc}"
+
+    path = parsed.path.rstrip("/")
+    if path == "/":
+        path = ""
+
+    return parsed._replace(
+        scheme=parsed.scheme.lower(),
+        netloc=netloc,
+        path=path,
+        params="",
+        query="",
+        fragment="",
+    ).geturl()
+
+
 def check_exporter(name: str, value: Any, quiet: bool, expected: str) -> tuple[int, int]:
     warnings = 0
     errors = 0
     endpoint = extract_otlp_endpoint(value)
-    if endpoint == expected:
+    normalized_endpoint = normalize_otlp_endpoint(endpoint) if endpoint is not None else None
+    normalized_expected = normalize_otlp_endpoint(expected)
+    if normalized_endpoint == normalized_expected:
         ok(f"{name} endpoint is {expected}", quiet)
     elif endpoint is None:
         error(f"{name} is missing or not configured for otlp-grpc", quiet)
