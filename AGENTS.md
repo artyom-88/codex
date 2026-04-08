@@ -12,6 +12,12 @@ Use this file for global routing and defaults, not detailed task guidance.
 - Escalate scrutiny for secrets, credentials, authentication, permissions, external network access, and destructive operations.
 - Do not normalize insecure shortcuts in shared guidance; if a faster path weakens security, call out the tradeoff explicitly.
 
+## Command Form
+
+- For normal executables such as `git`, `python3`, `rg`, and `gh`, use the direct command form.
+- Use a shell wrapper only when shell resolution is actually required, such as for aliases or shell functions.
+- See `instructions/workflow/core.md` for the detailed command-shape guidance.
+
 ## Loading Policy
 
 - Keep this root file small.
