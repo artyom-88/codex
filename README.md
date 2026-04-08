@@ -31,5 +31,5 @@ and `[projects."..."]` trust entries in your private live `config.toml`, not in 
 
 ## For contributors
 
-Keep GitHub-facing docs user-oriented. Repo-maintainer publishing workflow and shareability
-rules live in `.codex/AGENTS.md` and `.codex/instructions/workflow/sharing.md`.
+Keep GitHub-facing docs user-oriented. Repo-maintainer publishing workflow, allowlist rules,
+and example-file conventions live in `.codex/AGENTS.md` and `.codex/instructions/workflow/sharing.md`.

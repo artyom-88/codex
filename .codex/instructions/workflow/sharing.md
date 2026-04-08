@@ -7,6 +7,13 @@ Use this note when changing the tracked public surface of this repository.
 - Keep `README.md` GitHub-facing and user-oriented.
 - Move repo-maintainer process details, allowlist rules, and publish workflow notes into repo-local guidance instead of the public README.
 
+## Public examples
+
+- Keep public example files functional and copyable by default.
+- Do not disable otherwise useful example settings just to mark them optional.
+- Explain optional or environment-specific blocks with short descriptions instead.
+- Keep private-only values out of examples, but keep safe defaults in place when they improve usability.
+
 ## Allowlists and tracked surface
 
 - This repo is deny-by-default in `.gitignore`; new paths stay private until explicitly allowlisted.

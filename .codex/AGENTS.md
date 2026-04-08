@@ -1,5 +1,11 @@
 # Repo-Local Codex Guidance
 
+## Public Surface
+
+- Keep `README.md` GitHub-facing and user-oriented.
+- When editing public templates or example files, prefer descriptive comments over removing or disabling safe example settings.
+- Use `.codex/instructions/workflow/sharing.md` for repo publishing rules and public/private boundary decisions.
+
 ## Tool Guidance
 
 - `.codex/instructions/tools/signoz.md` contains SigNoz stack workflow guidance for `tools/signoz-codex/` plus shared SigNoz conventions. Load only when working on SigNoz-related tooling.
