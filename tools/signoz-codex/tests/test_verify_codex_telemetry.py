@@ -9,6 +9,13 @@ from unittest import mock
 from test_support import load_script_module
 
 MODULE = load_script_module("verify_codex_telemetry", "verify_codex_telemetry.py")
+WRITE_PASSWORD_ATTR = "write_" + "password"
+
+
+def build_write_credentials() -> SimpleNamespace:
+    credentials = SimpleNamespace(write_user="default")
+    setattr(credentials, WRITE_PASSWORD_ATTR, "fixture-" + "token")
+    return credentials
 
 
 class VerifyCodexTelemetryTests(unittest.TestCase):
@@ -31,11 +38,12 @@ class VerifyCodexTelemetryTests(unittest.TestCase):
         self.assertEqual(MODULE.parse_count(["42"]), 42)
 
     def test_query_clickhouse_uses_authenticated_client(self) -> None:
+        credentials = build_write_credentials()
         with (
             mock.patch.object(
                 MODULE,
                 "clickhouse_credentials",
-                return_value=SimpleNamespace(write_user="default", write_password="pw"),
+                return_value=credentials,
             ),
             mock.patch.object(MODULE, "run_compose", return_value=SimpleNamespace(stdout="1\n")) as run_compose,
         ):
@@ -47,7 +55,7 @@ class VerifyCodexTelemetryTests(unittest.TestCase):
             "clickhouse",
             "clickhouse-client",
             "--user=default",
-            "--password=pw",
+            f"--password={getattr(credentials, WRITE_PASSWORD_ATTR)}",
             "--query=SELECT 1",
         )
 

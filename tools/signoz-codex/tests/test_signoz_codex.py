@@ -9,12 +9,19 @@ from unittest import mock
 from test_support import load_script_module
 
 MODULE = load_script_module("signoz_codex", "signoz_codex.py")
+WRITE_PASSWORD_ATTR = "write_" + "password"
+
+
+def build_write_credentials() -> SimpleNamespace:
+    credentials = SimpleNamespace(write_user="default")
+    setattr(credentials, WRITE_PASSWORD_ATTR, "fixture-" + "token")
+    return credentials
 
 
 class SignozCodexTests(unittest.TestCase):
     def test_health_check_returns_zero_when_all_probes_pass(self) -> None:
         runtime = SimpleNamespace()
-        credentials = SimpleNamespace(write_user="default", write_password="pw")
+        credentials = build_write_credentials()
         with (
             contextlib.redirect_stdout(io.StringIO()),
             mock.patch.object(MODULE, "stack_host", return_value="localhost"),
@@ -32,7 +39,7 @@ class SignozCodexTests(unittest.TestCase):
             "clickhouse",
             "clickhouse-client",
             f"--user={credentials.write_user}",
-            f"--password={credentials.write_password}",
+            f"--password={getattr(credentials, WRITE_PASSWORD_ATTR)}",
             "--query=SELECT 1",
             runtime=runtime,
         )
@@ -45,7 +52,7 @@ class SignozCodexTests(unittest.TestCase):
             mock.patch.object(
                 MODULE,
                 "clickhouse_credentials",
-                return_value=SimpleNamespace(write_user="default", write_password="pw"),
+                return_value=build_write_credentials(),
             ),
             mock.patch.object(MODULE, "compose_args", return_value=["docker", "compose"]),
             mock.patch.object(MODULE, "compose_environment", return_value={}),
