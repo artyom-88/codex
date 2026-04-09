@@ -459,10 +459,11 @@ class ReflectionLogTests(unittest.TestCase):
                     "run_id": "run1",
                     "timestamp": "2026-04-08T15:00:00Z",
                     "event_type": "start",
+                    "user_request_summary": "Refine memory guidance",
                     "project_key": "proj-1",
                     "project_name": "repo-a",
-                    "stage": "start",
-                    "payload": {},
+                    "repo_name": "repo-a",
+                    "notes": ["start note"],
                 },
             )
             active_entry = {"run_id": "run1", "run_dir": str(run_dir)}
@@ -474,6 +475,13 @@ class ReflectionLogTests(unittest.TestCase):
             self.assertTrue(changed)
             self.assertEqual(invalid, [])
             self.assertEqual(events[-1]["event_type"], "interrupted")
+            summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(summary["final_status"], "interrupted")
+            self.assertEqual(summary["user_request_summary"], "Refine memory guidance")
+            self.assertIn(
+                "run interrupted: superseded by a newer memory-refiner run for the same project",
+                summary["notes"],
+            )
 
 
 if __name__ == "__main__":

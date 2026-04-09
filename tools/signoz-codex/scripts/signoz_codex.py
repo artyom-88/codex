@@ -243,7 +243,8 @@ def start_services(runtime: RuntimeConfig, force: bool) -> int:
             log_warn("Run ./scripts/signoz-codex restart if config changes require service reload")
         return show_status(runtime)
 
-    ensure_runtime_assets(runtime, required=True)
+    if not assets_refreshed:
+        ensure_runtime_assets(runtime, required=True)
 
     log_info("Starting SigNoz Codex stack")
     up_args = ["up", "-d"]

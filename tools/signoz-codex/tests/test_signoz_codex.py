@@ -94,7 +94,7 @@ class SignozCodexTests(unittest.TestCase):
                 "run_local_script",
                 return_value=SimpleNamespace(returncode=0, stdout="", stderr=""),
             ),
-            mock.patch.object(MODULE, "ensure_runtime_assets", side_effect=[True, True]),
+            mock.patch.object(MODULE, "ensure_runtime_assets", return_value=True) as ensure_runtime_assets,
             mock.patch.object(MODULE, "are_all_running", side_effect=[False, True, True]),
             mock.patch.object(MODULE, "run_compose") as run_compose,
             mock.patch.object(MODULE, "show_status", return_value=0),
@@ -102,6 +102,7 @@ class SignozCodexTests(unittest.TestCase):
         ):
             self.assertEqual(MODULE.start_services(runtime, force=False), 0)
 
+        ensure_runtime_assets.assert_called_once_with(runtime, required=False)
         run_compose.assert_called_once_with(runtime, "up", "-d", "--force-recreate")
 
 

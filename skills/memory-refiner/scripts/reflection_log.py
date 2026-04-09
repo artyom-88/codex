@@ -561,6 +561,16 @@ def write_summary_file(run_dir: Path, record: dict[str, Any]) -> Path:
     return path
 
 
+def empty_reflection_signals() -> dict[str, Any]:
+    return {
+        "prior_log_count": 0,
+        "prior_project_log_count": 0,
+        "repeated_recommendations": [],
+        "repeated_applied_recommendations": [],
+        "repeated_rejected_recommendations": [],
+    }
+
+
 def load_run_by_active_entry(active_entry: dict[str, Any]) -> tuple[Path | None, list[dict[str, Any]], list[str]]:
     run_dir_raw = active_entry.get("run_dir")
     if not isinstance(run_dir_raw, str):
@@ -570,6 +580,42 @@ def load_run_by_active_entry(active_entry: dict[str, Any]) -> tuple[Path | None,
         return run_dir, [], []
     events, invalid = load_events(run_dir)
     return run_dir, events, invalid
+
+
+def build_interrupted_summary_record(
+    active_entry: dict[str, Any],
+    events: list[dict[str, Any]],
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    start_event = next(
+        (
+            event
+            for event in events
+            if event.get("event_type") == "start"
+        ),
+        {},
+    )
+    start_notes = start_event.get("notes", [])
+    notes = list(start_notes) if isinstance(start_notes, list) else []
+    notes.append("run interrupted: superseded by a newer memory-refiner run for the same project")
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "run_id": active_entry.get("run_id"),
+        "timestamp": format_timestamp(now or utc_now()),
+        "project_name": start_event.get("project_name") or active_entry.get("project_name") or "unknown",
+        "repo_name": start_event.get("repo_name"),
+        "project_root_hash": start_event.get("project_root_hash"),
+        "cwd_hash": start_event.get("cwd_hash"),
+        "project_key": start_event.get("project_key") or active_entry.get("project_key"),
+        "user_request_summary": normalize_text(str(start_event.get("user_request_summary", ""))),
+        "history_summary": {},
+        "memory_surface_summary": {},
+        "recommendations": [],
+        "notes": notes,
+        "reflection_signals": empty_reflection_signals(),
+        "final_status": "interrupted",
+    }
 
 
 def mark_superseded_run(
@@ -595,6 +641,10 @@ def mark_superseded_run(
         },
     }
     append_event(run_dir, event)
+    write_summary_file(
+        run_dir,
+        build_interrupted_summary_record(active_entry, events, now=now),
+    )
     return True
 
 

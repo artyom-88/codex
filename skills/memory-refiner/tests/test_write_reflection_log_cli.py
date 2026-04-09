@@ -184,6 +184,9 @@ class WriteReflectionLogCliTests(unittest.TestCase):
             self.assertEqual(invalid, [])
             self.assertEqual(first_events[0]["event_type"], "start")
             self.assertEqual(first_events[-1]["event_type"], "interrupted")
+            first_summary = json.loads((first_run_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(first_summary["final_status"], "interrupted")
+            self.assertEqual(first_summary["user_request_summary"], "supersede one")
             self.assertTrue(second_run_dir.exists())
 
             active_record = json.loads(Path(second_payload["active_record"]).read_text(encoding="utf-8"))
