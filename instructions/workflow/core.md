@@ -13,3 +13,7 @@
 - Use exact `zsh -ic` or `zsh -lc` script-string forms only when the command is shell-only or alias-only.
 - For shell aliases/functions that need arguments, prefer `zsh -ic 'command "$@"' command arg...` so execpolicy can match stable argv tokens.
 - Do not present shell-wrapper forms as if they were the intended command shape for ordinary executables.
+
+## Commit Scope
+
+- When the user asks to `commit`, default to committing only the task-relevant files. Broaden the scope only when the user explicitly says `all`, `everything`, or names additional files.
