@@ -5,22 +5,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
-import subprocess  # nosec B404: this utility shells out only to git for repo discovery
 from pathlib import Path
 from typing import Any
 
-PROJECT_MARKERS = (
-    ".codex",
-    "AGENTS.md",
-    "package.json",
-    "pyproject.toml",
-    "Cargo.toml",
-    "go.mod",
-    "pom.xml",
-    "build.gradle",
-    "build.gradle.kts",
-)
+from project_context import resolve_project_root
 
 LOCAL_CODEX_SUFFIXES = {".md", ".toml", ".rules", ".yaml", ".yml"}
 PROJECT_ARTIFACT_DIRS = {"code-review", "debug", "diff", "plans", "reports"}
@@ -38,34 +26,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cwd", default=str(Path.cwd()), help="Current working directory")
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     return parser.parse_args()
-
-
-def resolve_project_root(cwd: Path) -> Path | None:
-    git_bin = shutil.which("git")
-    if git_bin is None:
-        result = None
-    else:
-        try:
-            result = subprocess.run(
-                [git_bin, "rev-parse", "--show-toplevel"],
-                cwd=cwd,
-                check=True,
-                capture_output=True,
-                text=True,
-            )  # nosec B603: fixed git command for local repo root detection
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            result = None
-
-    if result is not None:
-        candidate = Path(result.stdout.strip())
-        if candidate.exists():
-            return candidate
-
-    for candidate in (cwd, *cwd.parents):
-        if any((candidate / marker).exists() for marker in PROJECT_MARKERS):
-            return candidate
-    return None
-
 
 def count_lines(path: Path) -> int:
     with path.open("r", encoding="utf-8", errors="ignore") as handle:

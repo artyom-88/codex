@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from jsonl_utils import load_jsonl_objects
+
 PREFERENCE_MARKERS = (
     "prefer ",
     "always ",
@@ -104,18 +106,7 @@ def parse_timestamp(value: Any) -> datetime | None:
 
 
 def load_entries(path: Path) -> list[dict[str, Any]]:
-    entries: list[dict[str, Any]] = []
-    with path.open("r", encoding="utf-8") as handle:
-        for line in handle:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                payload = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if isinstance(payload, dict):
-                entries.append(payload)
+    entries, _invalid = load_jsonl_objects(path)
     return entries
 
 

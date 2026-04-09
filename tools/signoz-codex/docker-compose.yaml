@@ -172,6 +172,7 @@ services:
     volumes:
       - "${SIGNOZ_CODEX_OTEL_COLLECTOR_CONFIG:-./otel-collector-config.yaml}:/etc/otel-collector-config.yaml"
     environment:
+      - SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN=${SIGNOZ_CODEX_CLICKHOUSE_WRITE_DSN:?}
       - OTEL_RESOURCE_ATTRIBUTES=host.name=signoz-codex-host,os.type=linux
       - LOW_CARDINAL_EXCEPTION_GROUPING=false
     ports:

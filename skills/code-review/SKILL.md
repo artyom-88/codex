@@ -27,7 +27,7 @@ Perform a risk-first review of the most relevant git change set. Prefer concrete
 - Start with file lists, diff stats, and the scoped diff before reading full files.
 - Inspect surrounding code only for changed or high-risk areas.
 - Trace affected entry points, downstream calls, persistence, external integrations, and changed model or schema shapes.
-- Create repo-local `.codex/code-review/` when needed and plan to export the final review there by default.
+- Create repo-local `.codex/code-review/` and `.codex/diff/` when needed and plan to export both the final review and the exact reviewed diff by default.
 
 3. Analyze by impact.
 - Prioritize correctness, behavioral regressions, security, data integrity, and compatibility.
@@ -45,12 +45,13 @@ Perform a risk-first review of the most relevant git change set. Prefer concrete
 - Suggest the missing test, guard, or safer design when it is clear.
 - If there are no findings, say so directly and mention residual risk or verification gaps.
 
-6. Export the review artifact.
+6. Export the review artifacts.
 - Unless the user explicitly asks for chat-only output, write the final review to repo-local `.codex/code-review/review-<target-slug>.md`.
+- Unless the user explicitly asks for chat-only output, also write the exact reviewed diff to repo-local `.codex/diff/diff-<target-slug>.patch`.
 - Derive `<target-slug>` from the review target by lowercasing it, replacing `/`, `\\`, whitespace, and other path separators with `-`, removing other unsafe filename characters, and collapsing repeated `-`.
 - If there is no stable target name, fall back to `head-<short-sha>`.
-- Mention the saved path in the response.
-- Save extra artifacts such as diff patches only when the user asks for them or they materially help with a large review.
+- Use a consistent unified diff patch format with the `.patch` file type, and make sure the saved diff matches the exact scope that was reviewed.
+- Mention the saved review path and saved diff path in the response.
 
 7. State verification boundaries.
 - Say whether the review covered local diff only, full files, tests, and remote comments.

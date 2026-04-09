@@ -60,11 +60,12 @@ If the host CLI is unavailable, unauthenticated, or blocked by sandboxing, say s
 
 ## Artifact Paths
 
-Prefer repo-local `.codex/code-review/` for review artifacts. Create the directory when missing.
+Prefer repo-local `.codex/code-review/` for review reports and repo-local `.codex/diff/` for diff artifacts. Create the directories when missing.
 
 - Derive `<target-slug>` before writing files: lowercase the review target, replace `/`, `\\`, whitespace, and other path separators with `-`, remove remaining unsafe filename characters, and collapse repeated `-`. If there is no stable target name, use `head-<short-sha>`.
-- Diff artifact: `.codex/code-review/diff-<target-slug>.patch`
+- Diff artifact: `.codex/diff/diff-<target-slug>.patch`
 - Review artifact: `.codex/code-review/review-<target-slug>.md`
 
-Write the review artifact by default when the skill is explicitly invoked, unless the user asks for chat-only output.
+Write both artifacts by default when the skill is explicitly invoked, unless the user asks for chat-only output.
+Use a consistent unified diff patch with the `.patch` extension, and ensure the saved diff matches the exact scope reviewed in chat.
 Use descriptive names. Include the branch name, PR number, or ticket identifier when available. Overwrite the same review path on reruns unless the user asks to preserve history.
