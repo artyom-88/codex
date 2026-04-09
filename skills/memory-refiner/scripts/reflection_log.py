@@ -423,27 +423,41 @@ def list_projects(entries: list[dict[str, Any]]) -> list[str]:
     return sorted({str(entry.get("project_name") or "unknown") for entry in entries})
 
 
-def filter_entries_for_project(
+def entry_project_identity(entry: dict[str, Any]) -> str | None:
+    project_key = entry.get("project_key")
+    if isinstance(project_key, str) and project_key:
+        return project_key
+    project_name = entry.get("project_name")
+    if isinstance(project_name, str) and project_name:
+        return project_name
+    return None
+
+
+def filter_entries_for_project_identity(
     entries: list[dict[str, Any]],
+    project_key: str | None,
     project_name: str | None,
 ) -> list[dict[str, Any]]:
-    if project_name is None:
+    if project_key is None and project_name is None:
         return entries
-    return [entry for entry in entries if entry.get("project_name") == project_name]
+    target_identity = project_key or project_name
+    return [entry for entry in entries if entry_project_identity(entry) == target_identity]
 
 
 def summarize_recent_logs(
     entries: list[dict[str, Any]],
     *,
+    project_key: str | None = None,
     project_name: str | None = None,
     limit: int = 5,
     active_entries: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    project_entries = filter_entries_for_project(entries, project_name)
-    active = filter_entries_for_project(active_entries or [], project_name)
+    project_entries = filter_entries_for_project_identity(entries, project_key, project_name)
+    active = filter_entries_for_project_identity(active_entries or [], project_key, project_name)
     stale_active = detect_stale_active_runs(active)
     summary = {
         "total_logs": len(entries),
+        "project_key": project_key,
         "project_name": project_name,
         "project_logs": len(project_entries),
         "projects": list_projects(entries),
@@ -457,9 +471,15 @@ def summarize_recent_logs(
 def build_reflection_signals(
     recommendations: list[dict[str, Any]],
     prior_logs: list[dict[str, Any]],
+    project_key: str,
     project_name: str,
 ) -> dict[str, Any]:
-    prior_summary = summarize_recent_logs(prior_logs, project_name=project_name, limit=10)
+    prior_summary = summarize_recent_logs(
+        prior_logs,
+        project_key=project_key,
+        project_name=project_name,
+        limit=10,
+    )
     seen_ids = {str(item.get("recommendation_id", "")) for item in recommendations if isinstance(item, dict)}
 
     def relevant(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -500,6 +520,7 @@ def build_summary_record(
         "reflection_signals": build_reflection_signals(
             prepared_payload["recommendations"],
             previous_logs,
+            str(prepared_payload["project_key"]),
             str(prepared_payload["project_name"]),
         ),
         "final_status": prepared_payload["final_status"],
@@ -587,8 +608,8 @@ def append_age_based_suggestions(
 ) -> None:
     by_project: defaultdict[str, list[dict[str, Any]]] = defaultdict(list)
     for entry in entries:
-        project_name = str(entry.get("project_name") or "unknown")
-        by_project[project_name].append(entry)
+        project_identity = entry_project_identity(entry) or "unknown"
+        by_project[project_identity].append(entry)
 
     for group in by_project.values():
         group.sort(key=lambda item: item.get("_timestamp") or datetime.min.replace(tzinfo=timezone.utc), reverse=True)

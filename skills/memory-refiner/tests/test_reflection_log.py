@@ -123,6 +123,7 @@ class ReflectionLogTests(unittest.TestCase):
     def test_summarize_recent_logs_reports_repeated_outcomes(self) -> None:
         entries = [
             {
+                "project_key": "repo-a-key",
                 "project_name": "repo-a",
                 "recommendations": [
                     {
@@ -142,6 +143,7 @@ class ReflectionLogTests(unittest.TestCase):
                 ],
             },
             {
+                "project_key": "repo-a-key",
                 "project_name": "repo-a",
                 "recommendations": [
                     {
@@ -154,6 +156,7 @@ class ReflectionLogTests(unittest.TestCase):
                 ],
             },
             {
+                "project_key": "repo-b-key",
                 "project_name": "repo-b",
                 "recommendations": [
                     {
@@ -168,17 +171,20 @@ class ReflectionLogTests(unittest.TestCase):
         ]
         active_entries = [
             {
-                "_timestamp": MODULE.parse_timestamp("2026-04-08T15:00:00Z"),
+                "_timestamp": MODULE.utc_now(),
+                "project_key": "repo-a-key",
                 "project_name": "repo-a",
             },
             {
                 "_timestamp": MODULE.parse_timestamp("2026-04-08T01:00:00Z"),
+                "project_key": "repo-b-key",
                 "project_name": "repo-b",
             },
         ]
 
         summary = MODULE.summarize_recent_logs(
             entries,
+            project_key="repo-a-key",
             project_name="repo-a",
             limit=5,
             active_entries=active_entries,
@@ -209,6 +215,7 @@ class ReflectionLogTests(unittest.TestCase):
         ]
         prior_logs = [
             {
+                "project_key": "repo-a-key",
                 "project_name": "repo-a",
                 "recommendations": [
                     {
@@ -221,6 +228,7 @@ class ReflectionLogTests(unittest.TestCase):
                 ],
             },
             {
+                "project_key": "repo-b-key",
                 "project_name": "repo-b",
                 "recommendations": [
                     {
@@ -234,12 +242,105 @@ class ReflectionLogTests(unittest.TestCase):
             },
         ]
 
-        signals = MODULE.build_reflection_signals(recommendations, prior_logs, "repo-a")
+        signals = MODULE.build_reflection_signals(recommendations, prior_logs, "repo-a-key", "repo-a")
 
         self.assertEqual(signals["prior_log_count"], 2)
         self.assertEqual(signals["prior_project_log_count"], 1)
         self.assertEqual(len(signals["repeated_recommendations"]), 1)
         self.assertEqual(signals["repeated_recommendations"][0]["recommendation_id"], "rec-1")
+        self.assertEqual(len(signals["repeated_applied_recommendations"]), 1)
+        self.assertEqual(signals["repeated_rejected_recommendations"], [])
+
+    def test_summaries_use_project_key_when_repo_names_collide(self) -> None:
+        entries = [
+            {
+                "project_key": "shared-aaa",
+                "project_name": "shared",
+                "recommendations": [
+                    {
+                        "recommendation_id": "rec-a",
+                        "target": "AGENTS.md",
+                        "scope": "global",
+                        "summary": "keep",
+                        "status": "applied",
+                    }
+                ],
+            },
+            {
+                "project_key": "shared-bbb",
+                "project_name": "shared",
+                "recommendations": [
+                    {
+                        "recommendation_id": "rec-b",
+                        "target": "README.md",
+                        "scope": "project-local",
+                        "summary": "ignore",
+                        "status": "rejected",
+                    }
+                ],
+            },
+        ]
+        active_entries = [
+            {
+                "_timestamp": MODULE.parse_timestamp("2026-04-08T15:00:00Z"),
+                "project_key": "shared-aaa",
+                "project_name": "shared",
+            },
+            {
+                "_timestamp": MODULE.parse_timestamp("2026-04-08T01:00:00Z"),
+                "project_key": "shared-bbb",
+                "project_name": "shared",
+            },
+        ]
+
+        summary = MODULE.summarize_recent_logs(
+            entries,
+            project_key="shared-aaa",
+            project_name="shared",
+            limit=5,
+            active_entries=active_entries,
+        )
+
+        self.assertEqual(summary["project_logs"], 1)
+        self.assertEqual(summary["active_runs"], 1)
+        self.assertEqual(summary["repeated_recommendations"][0]["recommendation_id"], "rec-a")
+        self.assertEqual(summary["repeated_rejected_recommendations"], [])
+
+    def test_build_reflection_signals_ignore_same_named_other_repo(self) -> None:
+        recommendations = [
+            {
+                "recommendation_id": "rec-a",
+                "target": "AGENTS.md",
+                "scope": "global",
+                "summary": "keep",
+                "status": "applied",
+            }
+        ]
+        prior_logs = [
+            {
+                "project_key": "shared-aaa",
+                "project_name": "shared",
+                "recommendations": recommendations,
+            },
+            {
+                "project_key": "shared-bbb",
+                "project_name": "shared",
+                "recommendations": [
+                    {
+                        "recommendation_id": "rec-a",
+                        "target": "README.md",
+                        "scope": "project-local",
+                        "summary": "foreign",
+                        "status": "rejected",
+                    }
+                ],
+            },
+        ]
+
+        signals = MODULE.build_reflection_signals(recommendations, prior_logs, "shared-aaa", "shared")
+
+        self.assertEqual(signals["prior_project_log_count"], 1)
+        self.assertEqual(len(signals["repeated_recommendations"]), 1)
         self.assertEqual(len(signals["repeated_applied_recommendations"]), 1)
         self.assertEqual(signals["repeated_rejected_recommendations"], [])
 
@@ -251,6 +352,7 @@ class ReflectionLogTests(unittest.TestCase):
             "_run_dir": "old-run",
             "_timestamp": MODULE.parse_timestamp(old_timestamp),
             "timestamp": old_timestamp,
+            "project_key": "repo-a-key",
             "project_name": "repo-a",
             "user_request_summary": "same request",
             "recommendations": [{"recommendation_id": "rec-1", "status": "applied"}],
@@ -259,6 +361,7 @@ class ReflectionLogTests(unittest.TestCase):
             "_run_dir": "new-run",
             "_timestamp": MODULE.parse_timestamp(recent_timestamp),
             "timestamp": recent_timestamp,
+            "project_key": "repo-a-key",
             "project_name": "repo-a",
             "user_request_summary": "same request",
             "recommendations": [{"recommendation_id": "rec-1", "status": "applied"}],
@@ -312,6 +415,38 @@ class ReflectionLogTests(unittest.TestCase):
         paths = {item["path"] for item in suggestions}
         self.assertNotIn("repo-a-run", paths)
         self.assertNotIn("repo-b-run", paths)
+
+    def test_cleanup_keep_latest_ignores_same_named_other_repo(self) -> None:
+        now = datetime(2026, 4, 8, 15, 0, tzinfo=timezone.utc)
+        entries = [
+            {
+                "_run_dir": "shared-a-run",
+                "_timestamp": MODULE.parse_timestamp("2026-04-07T15:00:00Z"),
+                "project_name": "shared",
+                "project_key": "shared-aaa",
+                "user_request_summary": "request-a",
+                "recommendations": [{"recommendation_id": "rec-1", "status": "applied"}],
+            },
+            {
+                "_run_dir": "shared-b-run",
+                "_timestamp": MODULE.parse_timestamp("2026-04-08T15:00:00Z"),
+                "project_name": "shared",
+                "project_key": "shared-bbb",
+                "user_request_summary": "request-b",
+                "recommendations": [{"recommendation_id": "rec-2", "status": "applied"}],
+            },
+        ]
+
+        suggestions = MODULE.build_cleanup_suggestions(
+            entries,
+            now=now,
+            keep_days=30,
+            keep_latest=1,
+        )
+
+        paths = {item["path"] for item in suggestions}
+        self.assertNotIn("shared-a-run", paths)
+        self.assertNotIn("shared-b-run", paths)
 
     def test_mark_superseded_run_appends_interrupted_event(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

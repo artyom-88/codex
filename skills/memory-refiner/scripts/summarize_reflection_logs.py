@@ -70,6 +70,7 @@ def main() -> int:
     project_context = derive_project_context(cwd)
     summary = summarize_recent_logs(
         entries,
+        project_key=str(project_context["project_key"]),
         project_name=str(project_context["project_name"]),
         limit=args.limit,
         active_entries=active_entries,
